@@ -21,11 +21,27 @@ options, thumbnail text/concept/images, description and tags. You work through t
 - Search, channel filter, copy or download the script for your TTS tool, edit, activity history,
   light/dark mode, works on a phone.
 
+## Two ways to run it
+
+**1. On claude.ai (no hosting, recommended).** The desk runs as a private claude.ai artifact with its
+own built-in database: https://claude.ai/artifact/PiSqogtZbHwxTYE97Uakex (only you can open it).
+The page's source is [`artifact/script-desk.html`](artifact/script-desk.html); to change it, edit that
+file and ask Claude to republish it to the same link.
+
+- **Claude Code sessions** save scripts into it automatically with the `ArtifactData` tool.
+- **claude.ai chats** can't write to it directly, so they end their reply with a *Script Desk block*.
+  Copy it, click **+ Add script**, paste, and the title, channel and packaging fill in by themselves.
+- The **Connect agents** button in the page has both instructions ready to copy.
+
+**2. Self-hosted server.** The Node app described below. Use it if you want claude.ai chats or
+other tools to upload on their own through an MCP connector or REST API. It needs a machine that
+stays online at a public HTTPS address.
+
 ![To-do board: new scripts glow until you open them](docs/screenshots/todo.png)
 
 ![Packaging tab: pick a title, preview it with the thumbnail](docs/screenshots/packaging.png)
 
-## Run it
+## Run the self-hosted server
 
 Needs Node.js 22.13 or newer (it uses the built-in `node:sqlite`, so there are no native modules).
 
@@ -58,7 +74,7 @@ docker run -d -p 3000:3000 -v script-desk-data:/data \
 To let **claude.ai** chats upload, the app must be reachable over public HTTPS; claude.ai
 connects to it from Anthropic's servers, not from your computer.
 
-## Connect your agents
+## Connect your agents (self-hosted server)
 
 The **Connect agents** button in the app shows all of this with your real URLs filled in.
 
@@ -113,7 +129,7 @@ curl -X POST https://<your-host>/api/scripts \
 > `packaging`: 3–5 title options best first, `thumbnail_text` (max 4 words), `thumbnail_concept`,
 > `description`, `video_tags`. If you revise a script later, upload it again with the same `external_id`.
 
-## API reference
+## API reference (self-hosted server)
 
 Authenticate with `Authorization: Bearer <APP_KEY>` (or `X-API-Key`). All bodies are JSON.
 

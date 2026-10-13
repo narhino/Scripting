@@ -1,0 +1,1399 @@
+<title>Script Desk</title>
+<style>
+/* Layout: sticky top bar, a two-lane to-do board (New -> Audio created) or a month-grouped archive,
+   and a right-hand drawer for one script. Fresh arrivals glow; everything else stays quiet. */
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface-2: #efede7;
+  --text: #1d1c1a;
+  --muted: #6c6963;
+  --border: #e3e0d8;
+  --focus: #4f46e5;
+  --new: #f59e0b;
+  --new-2: #ec4899;
+  --new-3: #8b5cf6;
+  --new-soft: #fff4dc;
+  --new-ink: #9a5b00;
+  --created: #4f46e5;
+  --created-soft: #ecebff;
+  --uploaded: #15946a;
+  --uploaded-soft: #def5ea;
+  --danger: #cf3f36;
+  --on-accent: #ffffff;
+  --toast-bg: #1d1c1a;
+  --toast-fg: #f5f4f0;
+  --scrim: rgb(20 18 14 / 38%);
+  --shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 6px 18px -8px rgb(0 0 0 / 14%);
+  --shadow-lg: 0 24px 60px -12px rgb(0 0 0 / 28%);
+  --radius: 14px;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-read: "Iowan Old Style", Charter, "Palatino Linotype", Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111113; --surface: #1a1a1d; --surface-2: #242428; --text: #edebe7; --muted: #a09d97;
+    --border: #2f2f34; --focus: #8b8cff; --new-soft: #3a2a0b; --new-ink: #fbbf5a; --created: #8b8cff;
+    --created-soft: #25244a; --uploaded: #3ccf98; --uploaded-soft: #123327; --danger: #ff6b61;
+    --on-accent: #0b0b0d; --toast-bg: #edebe7; --toast-fg: #111113; --scrim: rgb(0 0 0 / 55%);
+    --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px -10px rgb(0 0 0 / 60%);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111113; --surface: #1a1a1d; --surface-2: #242428; --text: #edebe7; --muted: #a09d97;
+  --border: #2f2f34; --focus: #8b8cff; --new-soft: #3a2a0b; --new-ink: #fbbf5a; --created: #8b8cff;
+  --created-soft: #25244a; --uploaded: #3ccf98; --uploaded-soft: #123327; --danger: #ff6b61;
+  --on-accent: #0b0b0d; --toast-bg: #edebe7; --toast-fg: #111113; --scrim: rgb(0 0 0 / 55%);
+  --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px -10px rgb(0 0 0 / 60%);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.muted { color: var(--muted); }
+h1, h2, h3, h4 { text-wrap: balance; }
+
+/* Buttons & inputs */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 36px; padding: 0 14px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); cursor: pointer; white-space: nowrap; font-weight: 600; font-size: 14px;
+  transition: background .15s, border-color .15s, transform .05s;
+}
+.btn:hover { background: var(--surface-2); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+.btn.primary:hover { opacity: .9; }
+.btn.ghost { background: transparent; }
+.btn.ghost:hover { background: var(--surface-2); }
+.btn.small { min-height: 30px; padding: 0 10px; font-size: 13px; }
+.btn.icon { width: 36px; padding: 0; }
+.btn.audio { background: var(--created); border-color: var(--created); color: var(--on-accent); }
+.btn.audio:hover { background: var(--created); filter: brightness(1.08); }
+.btn.publish { background: var(--uploaded); border-color: var(--uploaded); color: var(--on-accent); }
+.btn.publish:hover { background: var(--uploaded); filter: brightness(1.08); }
+.btn.danger { color: var(--danger); border-color: transparent; background: transparent; }
+.btn.danger:hover, .btn.danger.armed { background: color-mix(in srgb, var(--danger) 12%, transparent); }
+input:not([type=radio]):not([type=file]), select, textarea {
+  width: 100%; min-height: 38px; padding: 7px 11px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+}
+textarea { resize: vertical; line-height: 1.55; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 20%, transparent); }
+.field { display: grid; gap: 6px; font-size: 13px; font-weight: 600; }
+.field > span { color: var(--muted); }
+.form { display: grid; gap: 14px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 2px 9px; border-radius: 999px;
+  background: var(--surface-2); color: var(--muted); font-size: 12px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.count {
+  display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding: 0 6px; border-radius: 999px;
+  background: var(--surface-2); color: var(--muted); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+
+/* Top bar */
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 10px 24px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 17px; letter-spacing: -.01em; }
+.brand-mark {
+  display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; color: #fff; font-size: 15px;
+  background: linear-gradient(135deg, var(--new), var(--new-2) 60%, var(--new-3));
+}
+.tabs { display: flex; gap: 4px; padding: 3px; background: var(--surface-2); border-radius: 12px; }
+.tab { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border: 0; border-radius: 9px; background: none; cursor: pointer; font-weight: 600; color: var(--muted); }
+.tab[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.tab[aria-pressed="true"] .count { background: var(--text); color: var(--bg); }
+.tools { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.search { position: relative; display: block; }
+.search input { width: 220px; padding-right: 32px; }
+.search kbd { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 0 6px; border: 1px solid var(--border); border-radius: 5px; font: 11px/18px var(--font-mono); color: var(--muted); }
+#channel { width: auto; max-width: 180px; }
+
+main { max-width: 1320px; margin: 0 auto; padding: 20px 24px 80px; display: grid; gap: 18px; }
+
+.notice { padding: 12px 16px; border-radius: var(--radius); background: var(--surface-2); font-weight: 600; }
+.banner {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border-radius: var(--radius);
+  background: linear-gradient(var(--new-soft), var(--new-soft)) padding-box, linear-gradient(90deg, var(--new), var(--new-2), var(--new-3)) border-box;
+  border: 1.5px solid transparent; font-weight: 600;
+}
+.banner #mark-all-seen { margin-left: auto; }
+.banner-spark { color: var(--new); font-size: 18px; animation: twinkle 1.6s ease-in-out infinite; }
+
+/* Lanes & cards */
+.lanes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.lane-head { display: flex; align-items: center; gap: 10px; margin: 0 4px 12px; }
+.lane-head h2 { margin: 0; font-size: 15px; font-weight: 700; }
+.lane-sub { color: var(--muted); font-weight: 500; margin-left: 4px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.dot-new { background: linear-gradient(135deg, var(--new), var(--new-2)); }
+.dot-created { background: var(--created); }
+.cards { display: grid; gap: 12px; }
+.card {
+  position: relative; display: grid; gap: 10px; padding: 14px 16px 14px 18px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+  cursor: pointer; transition: transform .15s, box-shadow .15s;
+}
+.card::before { content: ""; position: absolute; left: -1px; top: 12px; bottom: 12px; width: 4px; border-radius: 0 4px 4px 0; background: var(--border); }
+.card.status-new::before { background: linear-gradient(var(--new), var(--new-2)); }
+.card.status-created::before { background: var(--created); }
+.card:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgb(0 0 0 / 5%), 0 14px 30px -12px rgb(0 0 0 / 25%); }
+@property --angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+.card.unseen {
+  border: 2px solid transparent;
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
+    conic-gradient(from var(--angle), var(--new), var(--new-2), var(--new-3), var(--new-2), var(--new)) border-box;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--new) 14%, transparent), 0 10px 30px -10px color-mix(in srgb, var(--new-2) 55%, transparent);
+  animation: spin-border 5s linear infinite;
+}
+.card.unseen::before { display: none; }
+.card.unseen h3 { font-weight: 800; }
+.card.arrived { animation: arrive .6s cubic-bezier(.2, 1.4, .4, 1) both, spin-border 5s linear infinite; }
+.ribbon {
+  position: absolute; top: -11px; right: 14px; padding: 3px 10px; border-radius: 999px;
+  background: linear-gradient(90deg, var(--new), var(--new-2)); color: #fff;
+  font-size: 11px; font-weight: 800; letter-spacing: .08em;
+  box-shadow: 0 4px 12px -2px color-mix(in srgb, var(--new-2) 60%, transparent);
+}
+.ribbon.revised { background: linear-gradient(90deg, var(--new-3), var(--created)); }
+.card-top { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12px; }
+.card-top .when { margin-left: auto; color: var(--muted); white-space: nowrap; }
+.card-main { display: flex; gap: 14px; min-width: 0; }
+.card-text { min-width: 0; flex: 1; }
+.card h3 { margin: 0 0 4px; font-size: 16px; line-height: 1.3; overflow-wrap: anywhere; }
+.card-link { text-decoration: none; background: none; border: 0; padding: 0; text-align: left; cursor: pointer; font: inherit; }
+.card-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.pkg-title { margin: 0 0 4px; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.pkg-title b { color: var(--text); font-weight: 600; }
+.excerpt { margin: 0; color: var(--muted); font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.thumb { flex: none; width: 112px; max-width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; object-fit: cover; background: var(--surface-2); border: 1px solid var(--border); }
+.placeholder { display: grid; place-items: center; color: var(--muted); font-size: 12px; font-weight: 600; text-align: center; padding: 4px; text-decoration: none; overflow: hidden; }
+.card-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.meta .pkg-ok { color: var(--uploaded); font-weight: 600; }
+.card-foot .btn { margin-left: auto; }
+.empty { padding: 36px 20px; text-align: center; color: var(--muted); border: 1.5px dashed var(--border); border-radius: var(--radius); display: grid; gap: 6px; justify-items: center; }
+.empty strong { color: var(--text); }
+.empty .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+
+/* Archive */
+.archive-group { display: grid; gap: 10px; }
+.archive-group + .archive-group { margin-top: 16px; }
+.archive-group h2 { display: flex; align-items: baseline; gap: 10px; margin: 0 4px; font-size: 15px; }
+.archive-group h2 .muted { font-weight: 500; font-size: 13px; }
+.archive-rows { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.archive-row { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--border); cursor: pointer; }
+.archive-row:first-child { border-top: 0; }
+.archive-row:hover { background: var(--surface-2); }
+.archive-row .thumb { width: 96px; }
+.archive-row h3 { margin: 0 0 2px; font-size: 15px; overflow-wrap: anywhere; }
+.archive-row .working-title { margin: 0 0 2px; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.archive-row .right { display: flex; align-items: center; gap: 10px; }
+.done-badge { color: var(--uploaded); background: var(--uploaded-soft); }
+
+/* Drawer */
+.scrim { position: fixed; inset: 0; z-index: 20; background: var(--scrim); animation: fade .2s; }
+.drawer {
+  position: fixed; z-index: 21; top: 0; right: 0; bottom: 0; width: min(760px, 100vw);
+  display: flex; flex-direction: column; background: var(--bg); box-shadow: var(--shadow-lg);
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  animation: slide-in .25s cubic-bezier(.2, .8, .2, 1);
+}
+.drawer-head { padding: 18px 24px 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.drawer-head .row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.drawer-head .row .close { margin-left: auto; }
+.drawer-head h2 { margin: 0; font-size: 21px; line-height: 1.25; overflow-wrap: anywhere; }
+.drawer-head .sub { margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--muted); }
+.status-pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.status-pill.new { background: var(--new-soft); color: var(--new-ink); }
+.status-pill.created { background: var(--created-soft); color: var(--created); }
+.status-pill.uploaded { background: var(--uploaded-soft); color: var(--uploaded); }
+.stepper { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 14px 0 4px; padding: 0; list-style: none; }
+.step button {
+  width: 100%; display: grid; gap: 2px; justify-items: start; text-align: left; padding: 9px 12px;
+  border-radius: 10px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 700; font-size: 13px;
+}
+.step button small { font-weight: 500; color: var(--muted); font-size: 11.5px; }
+.step button:hover { background: var(--surface-2); }
+.step.done button { border-color: transparent; }
+.step.done.s-new button, .step.current.s-new button { background: var(--new-soft); }
+.step.done.s-created button, .step.current.s-created button { background: var(--created-soft); }
+.step.done.s-uploaded button, .step.current.s-uploaded button { background: var(--uploaded-soft); }
+.step.current button { border: 1.5px solid currentColor; }
+.step.current.s-new button { color: var(--new-ink); }
+.step.current.s-created button { color: var(--created); }
+.step.current.s-uploaded button { color: var(--uploaded); }
+.next-action { display: flex; gap: 8px; margin-top: 10px; }
+.next-action .btn { flex: 1; min-height: 42px; font-size: 15px; }
+.drawer-tabs { display: flex; gap: 4px; padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.drawer-tab { padding: 10px 12px; border: 0; border-bottom: 2px solid transparent; background: none; cursor: pointer; font-weight: 600; color: var(--muted); }
+.drawer-tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--text); }
+.drawer-tab .tick { color: var(--uploaded); }
+.drawer-body { flex: 1; overflow-y: auto; padding: 20px 24px 40px; display: grid; gap: 14px; align-content: start; }
+.drawer-foot { display: flex; align-items: center; gap: 10px; padding: 10px 24px; border-top: 1px solid var(--border); background: var(--surface); font-size: 12px; color: var(--muted); }
+.drawer-foot .btn { margin-left: auto; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.toolbar .meta { margin-right: auto; }
+.callout { padding: 12px 14px; border-radius: 10px; background: var(--surface-2); font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.callout b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 4px; }
+.callout.warn { background: var(--new-soft); }
+.script-text { padding: 24px 28px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); font: 17px/1.75 var(--font-read); white-space: pre-wrap; overflow-wrap: anywhere; max-width: 72ch; }
+.script-edit textarea[name=body] { min-height: 50vh; font: 16px/1.7 var(--font-read); }
+
+/* Packaging */
+.yt-preview { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 14px; padding: 14px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); }
+.yt-thumb { position: relative; aspect-ratio: 16 / 9; max-width: 100%; border-radius: 10px; overflow: hidden; background: linear-gradient(135deg, var(--surface-2), var(--border)); display: grid; place-items: center; }
+.yt-thumb img, .yt-thumb .placeholder { width: 100%; height: 100%; object-fit: cover; }
+.overlay-text { padding: 8px; font-weight: 900; font-size: 20px; text-align: center; text-transform: uppercase; line-height: 1.05; color: var(--text); overflow-wrap: anywhere; }
+.duration { position: absolute; right: 6px; bottom: 6px; padding: 1px 5px; border-radius: 4px; background: rgb(0 0 0 / 80%); color: #fff; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.yt-preview h4 { margin: 2px 0 6px; font-size: 16px; line-height: 1.3; overflow-wrap: anywhere; }
+.yt-preview p { margin: 0; font-size: 12.5px; color: var(--muted); }
+.section-title { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.title-option { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 8px; align-items: center; }
+.title-option input[type=radio] { width: 18px; height: 18px; accent-color: var(--created); }
+.len { font-size: 11px; color: var(--muted); min-width: 46px; text-align: right; font-variant-numeric: tabular-nums; }
+.len.over { color: var(--danger); font-weight: 700; }
+.thumb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.thumb-item { position: relative; }
+.thumb-item .thumb { width: 100%; }
+.thumb-item .btn { position: absolute; top: 6px; right: 6px; }
+.add-row { display: flex; gap: 8px; }
+.with-copy { position: relative; }
+.with-copy .btn { position: absolute; right: 6px; top: 6px; }
+.sticky-save {
+  position: sticky; bottom: -40px; margin: 6px -24px -40px; padding: 12px 24px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px);
+  border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap;
+}
+.sticky-save .hint { margin-right: auto; font-size: 13px; color: var(--muted); }
+.sticky-save .hint.attention { color: var(--danger); font-weight: 700; }
+.timeline { list-style: none; margin: 0; padding: 0; }
+.timeline li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; padding: 8px 0; }
+.timeline .ico { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); font-size: 13px; }
+.timeline .what { font-weight: 600; font-size: 14px; }
+.timeline .when { font-size: 12px; color: var(--muted); }
+
+/* Dialogs & toasts */
+.modal { width: min(460px, calc(100vw - 32px)); padding: 22px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); color: var(--text); box-shadow: var(--shadow-lg); }
+.modal.wide { width: min(740px, calc(100vw - 32px)); }
+.modal::backdrop { background: var(--scrim); }
+.modal h2 { margin: 0 0 4px; font-size: 19px; }
+.modal h3 { margin: 18px 0 6px; font-size: 15px; }
+.modal p { margin: 0 0 12px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.modal-scroll { max-height: 68vh; overflow-y: auto; }
+.code { position: relative; margin: 6px 0 10px; padding: 12px 14px; padding-right: 72px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); font: 12.5px/1.55 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.code .btn { position: absolute; top: 6px; right: 6px; }
+.detected { padding: 10px 12px; border-radius: 10px; background: var(--uploaded-soft); color: var(--uploaded); font-size: 13px; font-weight: 600; }
+.toasts { position: fixed; z-index: 40; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: grid; gap: 8px; width: min(460px, calc(100vw - 32px)); }
+.toast { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 16px; border-radius: 12px; background: var(--toast-bg); color: var(--toast-fg); box-shadow: var(--shadow-lg); font-weight: 600; font-size: 14px; animation: toast-in .25s ease-out; }
+.toast .msg { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.toast .btn { background: transparent; color: inherit; border-color: color-mix(in srgb, var(--toast-fg) 35%, transparent); }
+.toast.new-script { background: linear-gradient(90deg, var(--new), var(--new-2)); color: #fff; }
+.toast.error { background: var(--danger); color: #fff; }
+
+@keyframes spin-border { to { --angle: 360deg; } }
+@keyframes twinkle { 50% { opacity: .35; transform: scale(.8) rotate(20deg); } }
+@keyframes arrive { from { opacity: 0; transform: translateY(-14px) scale(.96); } }
+@keyframes slide-in { from { transform: translateX(40px); opacity: 0; } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes toast-in { from { transform: translateY(12px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+
+@media (max-width: 900px) { .lanes { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 720px) {
+  .topbar { position: static; padding: 10px 16px; gap: 10px; }
+  .brand-name { display: none; }
+  .tools { width: 100%; margin-left: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .search { grid-column: 1 / -1; }
+  .search input { width: 100%; }
+  #channel { max-width: none; width: 100%; }
+  #connect-btn { grid-column: 1 / -1; }
+  main { padding: 16px 16px 80px; }
+  .banner { display: grid; grid-template-columns: auto minmax(0, 1fr); }
+  .banner #mark-all-seen { grid-column: 2; justify-self: start; margin-left: 0; }
+  .thumb { width: 84px; }
+  .drawer-head, .drawer-body, .drawer-foot { padding-left: 16px; padding-right: 16px; }
+  .drawer-tabs { padding: 0 12px; }
+  .sticky-save { margin-left: -16px; margin-right: -16px; padding: 12px 16px; }
+  .yt-preview { grid-template-columns: minmax(0, 1fr); }
+  .archive-row { grid-template-columns: 72px minmax(0, 1fr); }
+  .archive-row .thumb { width: 72px; }
+  .archive-row .right { grid-column: 2; }
+  .script-text { padding: 18px; font-size: 16px; }
+}
+</style>
+
+<header class="topbar">
+  <div class="brand"><span class="brand-mark" aria-hidden="true">✦</span><span class="brand-name">Script Desk</span></div>
+  <nav class="tabs" aria-label="Views">
+    <button class="tab" type="button" data-view="todo" aria-pressed="true">To-do <span class="count" id="count-todo">0</span></button>
+    <button class="tab" type="button" data-view="archive" aria-pressed="false">Archive <span class="count" id="count-archive">0</span></button>
+  </nav>
+  <div class="tools">
+    <label class="search"><span class="visually-hidden">Search scripts</span><input type="search" id="search" placeholder="Search scripts" autocomplete="off"><kbd aria-hidden="true">/</kbd></label>
+    <label class="visually-hidden" for="channel">Channel</label>
+    <select id="channel"><option value="">All channels</option></select>
+    <button class="btn ghost" id="connect-btn" type="button">Connect agents</button>
+    <button class="btn primary" id="add-btn" type="button">+ Add script</button>
+  </div>
+</header>
+
+<main>
+  <div class="notice" id="notice" hidden></div>
+  <div class="banner" id="banner" hidden>
+    <span class="banner-spark" aria-hidden="true">✦</span>
+    <span id="banner-text"></span>
+    <button class="btn small ghost" id="mark-all-seen" type="button">Mark all as seen</button>
+  </div>
+  <section id="view-todo" aria-label="To-do">
+    <div class="lanes">
+      <section aria-labelledby="lane-new-title">
+        <header class="lane-head"><span class="dot dot-new" aria-hidden="true"></span><h2 id="lane-new-title">New <span class="lane-sub">needs audio</span></h2><span class="count" id="count-new">0</span></header>
+        <div class="cards" id="lane-new"></div>
+      </section>
+      <section aria-labelledby="lane-created-title">
+        <header class="lane-head"><span class="dot dot-created" aria-hidden="true"></span><h2 id="lane-created-title">Audio created <span class="lane-sub">ready to publish</span></h2><span class="count" id="count-created">0</span></header>
+        <div class="cards" id="lane-created"></div>
+      </section>
+    </div>
+  </section>
+  <section id="view-archive" aria-label="Archive" hidden><div id="archive-list"></div></section>
+</main>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Script details" hidden></aside>
+
+<dialog id="upload-dialog" class="modal">
+  <form method="dialog" id="upload-form">
+    <h2>Mark as uploaded 🚀</h2>
+    <p class="muted">It leaves the to-do list and moves to the archive.</p>
+    <label class="field"><span>Video link (optional)</span><input type="url" id="video-url" name="video_url" placeholder="https://youtube.com/watch?v=…"></label>
+    <div class="modal-actions">
+      <button class="btn ghost" value="cancel" formnovalidate>Cancel</button>
+      <button class="btn publish" value="confirm">Archive it</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="add-dialog" class="modal wide">
+  <form method="dialog" id="add-form" class="form">
+    <div>
+      <h2>Add a script</h2>
+      <p class="muted">Paste a finished script. If you paste a Script Desk block from a chat, the title, channel and packaging fill in by themselves.</p>
+    </div>
+    <label class="field"><span>Script or Script Desk block</span><textarea id="add-text" name="text" rows="10" required></textarea></label>
+    <div class="detected" id="add-detected" hidden></div>
+    <label class="field"><span>Title</span><input id="add-title" name="title" required maxlength="300"></label>
+    <label class="field"><span>Channel</span><input id="add-channel" name="channel" list="channel-options" maxlength="100"></label>
+    <div class="modal-actions">
+      <button class="btn ghost" value="cancel" formnovalidate>Cancel</button>
+      <button class="btn primary" value="confirm">Add to to-do</button>
+    </div>
+  </form>
+</dialog>
+<datalist id="channel-options"></datalist>
+
+<dialog id="connect-dialog" class="modal wide">
+  <div class="modal-scroll" id="connect-body"></div>
+  <form method="dialog" class="modal-actions"><button class="btn primary">Done</button></form>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+// Address of this artifact; agents need it to save scripts here.
+const DESK_URL = 'https://claude.ai/artifact/PiSqogtZbHwxTYE97Uakex';
+const COLLECTION = 'scripts';
+const STATUS = {
+  new: { label: 'New', next: 'created', action: '🎙 Mark audio created', actionClass: 'audio' },
+  created: { label: 'Audio created', next: 'uploaded', action: '🚀 Mark uploaded', actionClass: 'publish' },
+  uploaded: { label: 'Uploaded', next: null },
+};
+const ORDER = ['new', 'created', 'uploaded'];
+const WORDS_PER_MINUTE = 150;
+const TITLE_LIMIT = 100;
+
+const state = {
+  scripts: [], ready: false, view: 'todo', q: '', channel: '',
+  openId: null, tab: 'script', editing: false, draft: null, pk: null, dirty: false,
+  arrived: new Set(), known: null, readOnly: false, ownWrites: new Map(),
+};
+let db = null;
+let assets = null;
+let downloads = null;
+
+/* ---------- helpers ---------- */
+
+const $ = (sel, root = document) => root.querySelector(sel);
+
+function h(tag, props, ...children) {
+  const el = document.createElement(tag);
+  for (const [key, value] of Object.entries(props || {})) {
+    if (value === null || value === undefined || value === false) continue;
+    if (key === 'class') el.className = value;
+    else if (key === 'text') el.textContent = value;
+    else if (key === 'value') el.value = value;
+    else if (key === 'checked') el.checked = value;
+    else if (key.startsWith('on')) el.addEventListener(key.slice(2), value);
+    else el.setAttribute(key, value === true ? '' : value);
+  }
+  for (const child of children.flat(Infinity)) {
+    if (child === null || child === undefined || child === false || child === '') continue;
+    el.append(child instanceof Node ? child : document.createTextNode(String(child)));
+  }
+  return el;
+}
+
+const joined = (items, sep = ' · ') => items.filter(Boolean).flatMap((item, i) => (i ? [sep, item] : [item]));
+const nowIso = () => new Date().toISOString();
+const numberFmt = new Intl.NumberFormat();
+const dayFmt = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' });
+const fullFmt = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+const monthFmt = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' });
+const fmtFull = (iso) => (iso ? fullFmt.format(new Date(iso)) : '');
+
+function ago(iso) {
+  if (!iso) return 'date unknown';
+  const secs = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (secs < 45) return 'just now';
+  if (secs < 3600) return `${Math.round(secs / 60)} min ago`;
+  if (secs < 86400) return `${Math.round(secs / 3600)} h ago`;
+  if (secs < 172800) return 'yesterday';
+  if (secs < 7 * 86400) return `${Math.floor(secs / 86400)} days ago`;
+  return dayFmt.format(new Date(iso));
+}
+function readTime(words) {
+  const secs = (words / WORDS_PER_MINUTE) * 60;
+  return secs < 90 ? `~${Math.max(1, Math.round(secs))} s` : `~${Math.round(secs / 60)} min`;
+}
+function clock(words) {
+  const secs = Math.max(1, Math.round((words / WORDS_PER_MINUTE) * 60));
+  return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+}
+function safeUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+// Thumbnails are either images uploaded to this desk (asset ids) or links to images elsewhere.
+function thumbSrc(value) {
+  if (typeof value !== 'string') return null;
+  const v = value.trim();
+  if (/^[a-f0-9]{32}$/i.test(v)) return `/_blob/${v}`;
+  if (v.startsWith('/_blob/')) return v;
+  const m = v.match(/\/_blob\/([a-f0-9]{32})/i);
+  if (m) return `/_blob/${m[1]}`;
+  return safeUrl(v);
+}
+const slug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50) || 'script';
+const parseList = (text) => text.split(',').map((t) => t.trim()).filter(Boolean);
+const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+const countWords = (text) => (text.match(/\S+/g) || []).length;
+const validDate = (v) => (typeof v === 'string' && !Number.isNaN(Date.parse(v)) ? v : null);
+
+function thumbImg(value, className = 'thumb', fallbackText = '') {
+  const src = thumbSrc(value);
+  if (!src) return null;
+  const img = h('img', { class: className, src, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' });
+  img.addEventListener('error', () => {
+    // Images hosted on other sites can't load inside the desk; offer the link instead.
+    const external = src.startsWith('http');
+    img.replaceWith(external
+      ? h('a', { class: `${className} placeholder`, href: src, target: '_blank', rel: 'noopener noreferrer', onclick: (e) => e.stopPropagation() }, fallbackText ? h('span', { class: 'overlay-text', text: fallbackText }) : 'Open image ↗')
+      : h('div', { class: `${className} placeholder` }, fallbackText ? h('span', { class: 'overlay-text', text: fallbackText }) : 'Image missing'));
+  }, { once: true });
+  return img;
+}
+
+function toast(message, { action, kind = '', timeout = 5000 } = {}) {
+  const el = h('div', { class: `toast ${kind}`, role: kind === 'error' ? 'alert' : 'status' },
+    h('span', { class: 'msg', text: message }),
+    action && h('button', { class: 'btn small', type: 'button', text: action.label, onclick: () => { el.remove(); action.run(); } }),
+  );
+  const stack = $('#toasts');
+  stack.append(el);
+  while (stack.children.length > 3) stack.firstElementChild.remove();
+  setTimeout(() => el.remove(), timeout);
+}
+const fail = (err) => toast(err?.message || String(err), { kind: 'error', timeout: 8000 });
+
+async function copy(text, what = 'Copied') {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(`📋 ${what}`, { timeout: 2000 });
+  } catch {
+    const area = h('textarea', { value: text, style: 'position:fixed;opacity:0;top:0;left:0' });
+    document.body.append(area);
+    area.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch { ok = false; }
+    area.remove();
+    toast(ok ? `📋 ${what}` : 'Copying isn’t allowed here. Select the text and copy it yourself.', { kind: ok ? '' : 'error', timeout: ok ? 2000 : 5000 });
+  }
+}
+
+/* ---------- data ---------- */
+
+function normalize(id, d) {
+  const str = (v) => (typeof v === 'string' ? v : '');
+  const list = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x.trim()).map((x) => x.trim()) : typeof v === 'string' && v.trim() ? parseList(v) : []);
+  const body = str(d.body) || str(d.script) || str(d.text);
+  const p = d.packaging && typeof d.packaging === 'object' ? d.packaging : null;
+  const titles = p ? list(p.titles) : [];
+  return {
+    id,
+    raw: d,
+    title: str(d.title).trim() || 'Untitled script',
+    body,
+    channel: str(d.channel).trim(),
+    source: str(d.source).trim(),
+    source_url: str(d.source_url),
+    notes: str(d.notes),
+    tags: list(d.tags),
+    status: ORDER.includes(d.status) ? d.status : 'new',
+    seen: d.seen === true,
+    created_at: validDate(d.created_at),
+    updated_at: validDate(d.updated_at),
+    revised_at: validDate(d.revised_at),
+    audio_created_at: validDate(d.audio_created_at),
+    uploaded_at: validDate(d.uploaded_at),
+    video_url: str(d.video_url),
+    word_count: countWords(body),
+    packaging: p ? {
+      titles,
+      chosen_title: str(p.chosen_title).trim() || titles[0] || '',
+      thumbnail_text: str(p.thumbnail_text),
+      thumbnail_concept: str(p.thumbnail_concept),
+      thumbnail_urls: list(p.thumbnail_urls),
+      description: str(p.description),
+      video_tags: list(p.video_tags).length ? list(p.video_tags) : list(p.tags),
+      updated_at: validDate(p.updated_at),
+    } : null,
+  };
+}
+
+const find = (id) => state.scripts.find((s) => s.id === id) || null;
+const byNewest = (field) => (a, b) => (b[field] || '').localeCompare(a[field] || '') || a.id.localeCompare(b.id);
+
+function matches(s) {
+  if (state.channel && s.channel !== state.channel) return false;
+  if (!state.q) return true;
+  const q = state.q.toLowerCase();
+  const p = s.packaging;
+  return [s.title, s.body, s.channel, s.source, s.notes, s.tags.join(' '), p?.titles.join(' '), p?.description]
+    .some((v) => v && v.toLowerCase().includes(q));
+}
+
+async function write(id, patch) {
+  if (!db) throw new Error('The desk isn’t connected to its database in this view.');
+  // Remember which fields this page wrote, so their echo in the live feed isn't mistaken for an agent's change.
+  const own = state.ownWrites.get(id) || new Set();
+  for (const key of Object.keys(patch)) own.add(key);
+  state.ownWrites.set(id, own);
+  try {
+    await db.doc(`${COLLECTION}/${id}`).update(patch);
+  } catch (err) {
+    if (err?.code === 'invalid_argument' && /permission|level|write/i.test(err.message || '')) state.readOnly = true;
+    throw new Error(err?.code === 'quota_exceeded' ? 'The desk is full. Delete some old scripts and try again.' : (err?.message || 'Could not save. Try again.'));
+  }
+}
+
+// True when a field changed that this page didn't just write itself.
+function changedElsewhere(id, before, after) {
+  const own = state.ownWrites.get(id) || new Set();
+  const keys = new Set([...Object.keys(before || {}), ...Object.keys(after || {})]);
+  const changed = [...keys].filter((k) => JSON.stringify(before?.[k]) !== JSON.stringify(after?.[k]));
+  const foreign = changed.some((k) => !own.has(k));
+  for (const k of changed) own.delete(k);
+  return foreign;
+}
+
+async function changeStatus(id, status, { undoable = true } = {}) {
+  const s = find(id);
+  if (!s || s.status === status) return;
+  let videoUrl;
+  if (status === 'uploaded') {
+    videoUrl = await askVideoUrl(s.video_url);
+    if (videoUrl === null) return;
+  }
+  const ts = nowIso();
+  const before = { status: s.status, audio_created_at: s.audio_created_at, uploaded_at: s.uploaded_at, video_url: s.video_url };
+  const patch = {
+    status,
+    seen: true,
+    updated_at: ts,
+    audio_created_at: status === 'new' ? null : s.audio_created_at || ts,
+    uploaded_at: status === 'uploaded' ? ts : null,
+  };
+  if (videoUrl) patch.video_url = videoUrl;
+  await write(id, patch);
+  const messages = {
+    new: `↩ Back to New: “${s.title}”`,
+    created: `🎙 Audio created: “${s.title}”`,
+    uploaded: `🎉 Uploaded & archived: “${s.title}”`,
+  };
+  toast(messages[status], undoable ? { action: { label: 'Undo', run: () => write(id, { ...before, updated_at: nowIso() }).catch(fail) } } : {});
+}
+
+function askVideoUrl(current) {
+  const dialog = $('#upload-dialog');
+  $('#upload-form').reset();
+  $('#video-url').value = current || '';
+  dialog.returnValue = '';
+  dialog.showModal();
+  return new Promise((resolve) => {
+    dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm' ? $('#video-url').value.trim() : null), { once: true });
+  });
+}
+
+/* ---------- list rendering ---------- */
+
+function render() {
+  const all = state.scripts;
+  const todoAll = all.filter((s) => s.status !== 'uploaded');
+  const unseen = todoAll.filter((s) => !s.seen).length;
+  $('#count-todo').textContent = todoAll.length;
+  $('#count-archive').textContent = all.length - todoAll.length;
+  $('#banner').hidden = unseen === 0;
+  $('#banner-text').textContent = `${plural(unseen, 'new script')} waiting for you. They glow until you open them.`;
+
+  const channels = [...new Set(all.map((s) => s.channel).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const select = $('#channel');
+  const options = ['', ...new Set([...channels, state.channel].filter(Boolean))];
+  if (select.options.length !== options.length || [...select.options].some((o, i) => o.value !== options[i])) {
+    select.replaceChildren(...options.map((c) => h('option', { value: c, text: c || 'All channels' })));
+  }
+  select.value = state.channel;
+  select.hidden = channels.length === 0 && !state.channel;
+  $('#channel-options').replaceChildren(...channels.map((c) => h('option', { value: c })));
+
+  for (const tab of document.querySelectorAll('.tab')) tab.setAttribute('aria-pressed', String(tab.dataset.view === state.view));
+  $('#view-todo').hidden = state.view !== 'todo';
+  $('#view-archive').hidden = state.view !== 'archive';
+  renderTodo();
+  renderArchive();
+  state.arrived.clear();
+}
+
+function emptyState(title, text, ...actions) {
+  return h('div', { class: 'empty' }, h('strong', { text: title }), text && h('span', { text }), actions.length > 0 && h('div', { class: 'row' }, actions));
+}
+
+function renderTodo() {
+  const filtering = Boolean(state.q || state.channel);
+  const list = state.scripts.filter((s) => s.status !== 'uploaded' && matches(s)).sort(byNewest('created_at'));
+  for (const status of ['new', 'created']) {
+    const scripts = list.filter((s) => s.status === status);
+    $(`#count-${status}`).textContent = scripts.length;
+    const lane = $(`#lane-${status}`);
+    if (!state.ready) lane.replaceChildren(emptyState('Loading your scripts…', ''));
+    else if (scripts.length) lane.replaceChildren(...scripts.map(card));
+    else if (filtering) lane.replaceChildren(emptyState('No matches', 'Try another search or channel.'));
+    else if (status === 'new' && state.scripts.length === 0) {
+      lane.replaceChildren(emptyState('No scripts yet', 'Connect your agents so finished scripts land here, or paste one in.',
+        h('button', { class: 'btn small', type: 'button', text: 'Connect agents', onclick: openConnect }),
+        h('button', { class: 'btn small primary', type: 'button', text: '+ Add script', onclick: openAdd })));
+    } else if (status === 'new') lane.replaceChildren(emptyState('All caught up ✨', 'New scripts from your agents land here.'));
+    else lane.replaceChildren(emptyState('Nothing to publish', 'Scripts move here once their audio is created.'));
+  }
+}
+
+function card(s) {
+  const status = STATUS[s.status];
+  const thumb = s.packaging?.thumbnail_urls?.[0];
+  const chosen = s.packaging?.chosen_title;
+  const open = () => openScript(s.id);
+  const classes = ['card', `status-${s.status}`, !s.seen && 'unseen', state.arrived.has(s.id) && 'arrived'];
+  return h('article', { class: classes.filter(Boolean).join(' '), onclick: open },
+    !s.seen && h('span', { class: `ribbon${s.status === 'new' ? '' : ' revised'}`, text: s.status === 'new' ? '✦ NEW' : '✦ UPDATED' }),
+    h('div', { class: 'card-top' },
+      s.channel && h('span', { class: 'chip', text: s.channel }),
+      s.source && h('span', { class: 'chip', text: `by ${s.source}` }),
+      h('span', { class: 'when', title: fmtFull(s.created_at), text: ago(s.created_at) }),
+    ),
+    h('div', { class: 'card-main' },
+      h('div', { class: 'card-text' },
+        h('h3', null, h('button', { class: 'card-link', type: 'button', text: s.title, onclick: (e) => { e.stopPropagation(); open(); } })),
+        chosen && chosen !== s.title && h('p', { class: 'pkg-title' }, '🎬 ', h('b', { text: chosen })),
+        h('p', { class: 'excerpt', text: s.body.replace(/\s+/g, ' ').slice(0, 260) }),
+      ),
+      thumb && thumbImg(thumb, 'thumb', s.packaging.thumbnail_text),
+    ),
+    h('div', { class: 'card-foot' },
+      h('div', { class: 'meta' },
+        h('span', { text: `${numberFmt.format(s.word_count)} words` }),
+        h('span', { text: readTime(s.word_count) }),
+        s.packaging ? h('span', { class: 'pkg-ok', text: '📦 Packaging ✓' }) : h('span', { text: '📦 No packaging' }),
+      ),
+      status.next && !state.readOnly && h('button', {
+        class: `btn small ${status.actionClass}`, type: 'button', text: status.action,
+        onclick: (e) => { e.stopPropagation(); changeStatus(s.id, status.next).catch(fail); },
+      }),
+    ),
+  );
+}
+
+function renderArchive() {
+  const list = $('#archive-list');
+  const scripts = state.scripts.filter((s) => s.status === 'uploaded' && matches(s)).sort(byNewest('uploaded_at'));
+  if (!scripts.length) {
+    list.replaceChildren(state.q || state.channel
+      ? emptyState('No matches', 'Try another search or channel.')
+      : emptyState('Nothing published yet', 'Scripts you mark as uploaded leave the to-do list and are kept here.'));
+    return;
+  }
+  const groups = new Map();
+  for (const s of scripts) {
+    const when = s.uploaded_at || s.updated_at || s.created_at;
+    const key = when ? monthFmt.format(new Date(when)) : 'Date unknown';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(s);
+  }
+  list.replaceChildren(...[...groups].map(([month, items]) => h('section', { class: 'archive-group' },
+    h('h2', null, month, h('span', { class: 'muted', text: `${items.length} uploaded` })),
+    h('div', { class: 'archive-rows' }, items.map(archiveRow)),
+  )));
+}
+
+function archiveRow(s) {
+  const thumb = s.packaging?.thumbnail_urls?.[0];
+  const video = safeUrl(s.video_url);
+  const chosen = s.packaging?.chosen_title;
+  return h('div', { class: 'archive-row', onclick: () => openScript(s.id) },
+    (thumb && thumbImg(thumb, 'thumb', s.packaging.thumbnail_text)) || h('div', { class: 'thumb placeholder', text: '🎬' }),
+    h('div', { style: 'min-width:0' },
+      h('h3', null, h('button', { class: 'card-link', type: 'button', text: chosen || s.title, onclick: (e) => { e.stopPropagation(); openScript(s.id); } })),
+      chosen && chosen !== s.title && h('p', { class: 'working-title', text: `Script: ${s.title}` }),
+      h('div', { class: 'meta' }, joined([
+        s.channel && h('span', { text: s.channel }),
+        h('span', { text: `${numberFmt.format(s.word_count)} words` }),
+        s.uploaded_at && h('span', { title: fmtFull(s.uploaded_at), text: `uploaded ${dayFmt.format(new Date(s.uploaded_at))}` }),
+      ])),
+    ),
+    h('div', { class: 'right' },
+      video && h('a', { class: 'btn small ghost', href: video, target: '_blank', rel: 'noopener noreferrer', text: '▶ Watch', onclick: (e) => e.stopPropagation() }),
+      h('span', { class: 'chip done-badge', text: '✓ Uploaded' }),
+    ),
+  );
+}
+
+/* ---------- drawer ---------- */
+
+function resetDrawerState() {
+  state.tab = 'script';
+  state.editing = false;
+  state.draft = null;
+  state.pk = null;
+  state.dirty = false;
+}
+
+function openScript(id) {
+  const s = find(id);
+  if (!s) return;
+  if (state.openId !== id) resetDrawerState();
+  state.openId = id;
+  $('#drawer').hidden = false;
+  $('#scrim').hidden = false;
+  renderDrawer();
+  $('#drawer .close')?.focus();
+  if (!s.seen && db && !state.readOnly) write(id, { seen: true }).catch(() => {});
+}
+
+function closeDrawer() {
+  if (state.dirty) {
+    const hint = $('#drawer .sticky-save .hint');
+    if (hint) {
+      hint.textContent = 'Save or discard your changes first.';
+      hint.classList.add('attention');
+    }
+    return;
+  }
+  state.openId = null;
+  resetDrawerState();
+  $('#drawer').hidden = true;
+  $('#scrim').hidden = true;
+}
+
+function discardChanges() {
+  state.dirty = false;
+  state.editing = false;
+  state.draft = null;
+  state.pk = null;
+  renderDrawer();
+}
+
+function renderDrawer() {
+  const s = find(state.openId);
+  if (!s) return;
+  const tabButton = (id, label) => h('button', {
+    class: 'drawer-tab', type: 'button', role: 'tab', 'aria-selected': String(state.tab === id),
+    onclick: () => {
+      if (state.tab === id) return;
+      if (state.dirty) return closeDrawer();
+      state.tab = id;
+      state.editing = false;
+      state.draft = null;
+      state.pk = null;
+      renderDrawer();
+    },
+  }, label);
+
+  let deleteArmed = false;
+  const deleteBtn = h('button', {
+    class: 'btn small danger', type: 'button', text: 'Delete',
+    onclick: async () => {
+      if (!deleteArmed) {
+        deleteArmed = true;
+        deleteBtn.textContent = 'Click again to delete for good';
+        deleteBtn.classList.add('armed');
+        setTimeout(() => { deleteArmed = false; deleteBtn.textContent = 'Delete'; deleteBtn.classList.remove('armed'); }, 4000);
+        return;
+      }
+      try {
+        await db.doc(`${COLLECTION}/${s.id}`).delete();
+        state.dirty = false;
+        closeDrawer();
+        toast('🗑 Script deleted');
+      } catch (err) { fail(err); }
+    },
+  });
+
+  $('#drawer').replaceChildren(
+    drawerHead(s),
+    h('nav', { class: 'drawer-tabs', role: 'tablist' },
+      tabButton('script', 'Script'),
+      tabButton('packaging', ['Packaging ', s.packaging ? h('span', { class: 'tick', text: '✓' }) : '']),
+      tabButton('activity', 'Activity'),
+    ),
+    h('div', { class: 'drawer-body' },
+      h('div', { class: 'callout warn', id: 'stale-note', hidden: true },
+        'An agent changed this script while you were editing. Saving will replace their change. ',
+        h('button', { class: 'btn small', type: 'button', text: 'Discard mine and load theirs', onclick: discardChanges }),
+      ),
+      state.tab === 'script' && (state.editing ? scriptEditor(s) : scriptView(s)),
+      state.tab === 'packaging' && packagingEditor(s),
+      state.tab === 'activity' && activity(s),
+    ),
+    h('div', { class: 'drawer-foot' },
+      h('span', { text: `${s.id}${s.created_at ? ` · added ${fmtFull(s.created_at)}` : ''}` }),
+      !state.readOnly && deleteBtn,
+    ),
+  );
+}
+
+function drawerHead(s) {
+  const current = ORDER.indexOf(s.status);
+  const stamps = { new: s.created_at, created: s.audio_created_at, uploaded: s.uploaded_at };
+  const sourceUrl = safeUrl(s.source_url);
+  const videoUrl = safeUrl(s.video_url);
+  const step = (status, i) => h('li', { class: `step s-${status}${i < current ? ' done' : ''}${i === current ? ' current' : ''}` },
+    h('button', {
+      type: 'button', 'aria-current': i === current ? 'step' : null, disabled: state.readOnly,
+      title: i === current ? 'Current status' : `Set status to ${STATUS[status].label}`,
+      onclick: () => { if (status !== s.status) changeStatus(s.id, status).catch(fail); },
+    }, `${i < current ? '✓ ' : ''}${STATUS[status].label}`, h('small', { text: stamps[status] ? fmtFull(stamps[status]) : '—' })),
+  );
+  let next = null;
+  if (!state.readOnly && s.status === 'new') next = h('button', { class: 'btn audio', type: 'button', text: '🎙 I created the audio', onclick: () => changeStatus(s.id, 'created').catch(fail) });
+  else if (!state.readOnly && s.status === 'created') next = h('button', { class: 'btn publish', type: 'button', text: '🚀 Mark as uploaded', onclick: () => changeStatus(s.id, 'uploaded').catch(fail) });
+  else if (s.status === 'uploaded') {
+    next = [
+      videoUrl && h('a', { class: 'btn', href: videoUrl, target: '_blank', rel: 'noopener noreferrer', text: '▶ Watch video ↗' }),
+      !state.readOnly && h('button', { class: 'btn ghost', type: 'button', text: '↩ Back to to-do', onclick: () => changeStatus(s.id, 'created').catch(fail) }),
+    ];
+  }
+  return h('div', { class: 'drawer-head' },
+    h('div', { class: 'row' },
+      h('span', { class: `status-pill ${s.status}`, text: STATUS[s.status].label }),
+      s.channel && h('span', { class: 'chip', text: s.channel }),
+      h('button', { class: 'btn icon ghost close', type: 'button', 'aria-label': 'Close', text: '✕', onclick: closeDrawer }),
+    ),
+    h('h2', { text: s.title }),
+    h('div', { class: 'sub' }, joined([
+      s.source && h('span', { text: `by ${s.source}` }),
+      sourceUrl && h('a', { href: sourceUrl, target: '_blank', rel: 'noopener noreferrer', text: 'conversation ↗' }),
+      h('span', { title: fmtFull(s.created_at), text: `received ${ago(s.created_at)}` }),
+    ])),
+    h('ol', { class: 'stepper', 'aria-label': 'Status' }, ORDER.map(step)),
+    next && h('div', { class: 'next-action' }, next),
+  );
+}
+
+function scriptView(s) {
+  return [
+    h('div', { class: 'toolbar' },
+      h('div', { class: 'meta' },
+        h('span', { text: `${numberFmt.format(s.word_count)} words` }),
+        h('span', { text: `${readTime(s.word_count)} narration` }),
+        h('span', { text: `${numberFmt.format(s.body.length)} characters` }),
+      ),
+      h('button', { class: 'btn small', type: 'button', text: '📋 Copy script', onclick: () => copy(s.body, 'Script copied') }),
+      downloads && h('button', {
+        class: 'btn small', type: 'button', text: '⬇ .txt', title: 'Save as a text file',
+        onclick: () => downloads.save({ filename: `${slug(s.title)}.txt`, data: `${s.title}\n\n${s.body}\n` }).catch((err) => { if (err?.code !== 'declined') fail(err); }),
+      }),
+      !state.readOnly && h('button', { class: 'btn small', type: 'button', text: '✎ Edit', onclick: () => { state.editing = true; renderDrawer(); } }),
+    ),
+    s.notes && h('div', { class: 'callout' }, h('b', { text: 'Notes' }), s.notes),
+    s.tags.length > 0 && h('div', { class: 'toolbar' }, s.tags.map((t) => h('span', { class: 'chip', text: t }))),
+    s.body ? h('div', { class: 'script-text', text: s.body }) : emptyState('This script has no text', 'Click Edit to paste it in.'),
+  ];
+}
+
+function saveBar(label, onSave, onCancel) {
+  return h('div', { class: 'sticky-save' },
+    h('span', { class: 'hint', text: '' }),
+    h('button', { class: 'btn ghost', type: 'button', text: onCancel ? 'Cancel' : 'Discard changes', onclick: onCancel || discardChanges }),
+    h('button', { class: 'btn primary', type: 'submit', text: label, onclick: onSave }),
+  );
+}
+
+function scriptEditor(s) {
+  // The draft lives in state so a live update of the drawer never wipes what you typed.
+  state.draft ??= { title: s.title, channel: s.channel, source: s.source, source_url: s.source_url, tags: s.tags.join(', '), notes: s.notes, body: s.body };
+  const draft = state.draft;
+  const save = async (e) => {
+    e.preventDefault();
+    if (!draft.title.trim() || !draft.body.trim()) return toast('A script needs a title and text.', { kind: 'error' });
+    const url = draft.source_url.trim();
+    if (url && !safeUrl(url)) return toast('The conversation link must start with http:// or https://', { kind: 'error' });
+    try {
+      await write(s.id, {
+        title: draft.title.trim(), channel: draft.channel.trim(), source: draft.source.trim(), source_url: url,
+        tags: parseList(draft.tags), notes: draft.notes, body: draft.body, updated_at: nowIso(),
+      });
+      state.dirty = false;
+      state.editing = false;
+      state.draft = null;
+      toast('✓ Script saved');
+      renderDrawer();
+    } catch (err) { fail(err); }
+  };
+  const field = (label, name, input) => h('label', { class: 'field' }, h('span', { text: label }), input);
+  return h('form', {
+    class: 'script-edit form',
+    oninput: (e) => { if (e.target.name in draft) draft[e.target.name] = e.target.value; state.dirty = true; },
+    onsubmit: save,
+  },
+  field('Title', 'title', h('input', { id: 'edit-title', name: 'title', value: draft.title, maxlength: 300 })),
+  field('Channel', 'channel', h('input', { id: 'edit-channel', name: 'channel', value: draft.channel, list: 'channel-options', maxlength: 100 })),
+  field('Written by', 'source', h('input', { id: 'edit-source', name: 'source', value: draft.source, maxlength: 200 })),
+  field('Conversation link', 'source_url', h('input', { id: 'edit-source-url', name: 'source_url', type: 'url', value: draft.source_url })),
+  field('Labels (comma separated)', 'tags', h('input', { id: 'edit-tags', name: 'tags', value: draft.tags })),
+  field('Notes', 'notes', h('textarea', { id: 'edit-notes', name: 'notes', rows: 3, value: draft.notes })),
+  field('Script', 'body', h('textarea', { id: 'edit-body', name: 'body', value: draft.body })),
+  saveBar('Save script', null, () => { state.dirty = false; state.editing = false; state.draft = null; renderDrawer(); }),
+  );
+}
+
+function packagingEditor(s) {
+  if (!state.pk) {
+    const p = s.packaging || {};
+    const titles = [...(p.titles || [])];
+    state.pk = {
+      titles: titles.length ? titles : [''],
+      chosen: Math.max(0, titles.indexOf(p.chosen_title)),
+      thumbnail_text: p.thumbnail_text || '',
+      thumbnail_concept: p.thumbnail_concept || '',
+      thumbnail_urls: [...(p.thumbnail_urls || [])],
+      description: p.description || '',
+      video_tags: (p.video_tags || []).join(', '),
+    };
+  }
+  const pk = state.pk;
+  const touch = () => { state.dirty = true; };
+  const preview = h('div', { class: 'yt-preview', 'aria-label': 'Preview' });
+  const updatePreview = () => {
+    const title = pk.titles[pk.chosen]?.trim() || s.title;
+    preview.replaceChildren(
+      h('div', { class: 'yt-thumb' },
+        (pk.thumbnail_urls[0] && thumbImg(pk.thumbnail_urls[0], 'yt-img', pk.thumbnail_text)) || h('div', { class: 'overlay-text', text: pk.thumbnail_text || 'No thumbnail yet' }),
+        h('span', { class: 'duration', text: clock(s.word_count) }),
+      ),
+      h('div', { style: 'min-width:0' },
+        h('h4', { text: title }),
+        h('p', { text: `${s.channel || 'Your channel'} · preview` }),
+        pk.thumbnail_text && h('p', { text: `Thumbnail text: “${pk.thumbnail_text}”` }),
+      ),
+    );
+  };
+  updatePreview();
+
+  const titleRow = (title, i) => {
+    const len = h('span', { class: `len${title.length > TITLE_LIMIT ? ' over' : ''}`, text: `${title.length}/${TITLE_LIMIT}` });
+    return h('div', { class: 'title-option' },
+      h('input', { type: 'radio', name: 'chosen-title', id: `chosen-${i}`, checked: i === pk.chosen, 'aria-label': `Use title option ${i + 1}`, onchange: () => { pk.chosen = i; touch(); updatePreview(); } }),
+      h('input', {
+        id: `title-option-${i}`, value: title, placeholder: `Title option ${i + 1}`, maxlength: 200, 'aria-label': `Title option ${i + 1}`,
+        oninput: (e) => {
+          pk.titles[i] = e.target.value;
+          len.textContent = `${e.target.value.length}/${TITLE_LIMIT}`;
+          len.classList.toggle('over', e.target.value.length > TITLE_LIMIT);
+          touch();
+          updatePreview();
+        },
+      }),
+      len,
+      h('button', {
+        class: 'btn small ghost', type: 'button', text: '✕', 'aria-label': `Remove title option ${i + 1}`, disabled: pk.titles.length === 1,
+        onclick: () => { pk.titles.splice(i, 1); if (pk.chosen >= i && pk.chosen > 0) pk.chosen -= 1; touch(); renderDrawer(); },
+      }),
+    );
+  };
+
+  const field = (label, input) => h('label', { class: 'field' }, h('span', { text: label }), input);
+  const bound = (tag, key, attrs = {}) => h(tag, { ...attrs, value: pk[key], oninput: (e) => { pk[key] = e.target.value; touch(); updatePreview(); } });
+
+  const linkInput = h('input', { id: 'thumb-link', type: 'url', placeholder: 'Paste an image link', 'aria-label': 'Image link' });
+  const addLink = () => {
+    const v = linkInput.value.trim();
+    if (!v) return;
+    if (!thumbSrc(v)) return toast('That doesn’t look like an image link (it should start with https://).', { kind: 'error' });
+    pk.thumbnail_urls.push(v);
+    touch();
+    renderDrawer();
+  };
+  const fileInput = h('input', {
+    type: 'file', accept: 'image/png,image/jpeg,image/webp,image/gif', hidden: true, id: 'thumb-file',
+    onchange: async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const res = await assets.upload(file);
+        pk.thumbnail_urls.push(res.id);
+        touch();
+        toast('🖼 Image uploaded. Save packaging to keep it.');
+        renderDrawer();
+      } catch (err) {
+        fail(err?.code === 'too_large' ? 'That image is over 20 MB.' : err?.code === 'unsupported_type' ? 'Use a PNG, JPG, WebP or GIF image.' : err);
+      }
+    },
+  });
+
+  const save = async () => {
+    const titles = pk.titles.map((t) => t.trim()).filter(Boolean);
+    const chosenTitle = pk.titles[pk.chosen]?.trim();
+    try {
+      await write(s.id, {
+        packaging: {
+          titles,
+          chosen_title: titles.includes(chosenTitle) ? chosenTitle : titles[0] || '',
+          thumbnail_text: pk.thumbnail_text.trim(),
+          thumbnail_concept: pk.thumbnail_concept,
+          thumbnail_urls: pk.thumbnail_urls,
+          description: pk.description,
+          video_tags: parseList(pk.video_tags),
+          updated_at: nowIso(),
+        },
+        updated_at: nowIso(),
+      });
+      state.dirty = false;
+      state.pk = null;
+      toast('📦 Packaging saved');
+      renderDrawer();
+    } catch (err) { fail(err); }
+  };
+
+  return [
+    !s.packaging && h('div', { class: 'callout' }, h('b', { text: 'No packaging yet' }), 'Agents can add it when they save the script, or fill it in here.'),
+    preview,
+    h('div', { class: 'section-title' }, 'Title options ', h('span', { class: 'muted', text: '· pick the one to use' })),
+    pk.titles.map(titleRow),
+    h('div', { class: 'toolbar' },
+      !state.readOnly && h('button', { class: 'btn small', type: 'button', text: '+ Add title option', onclick: () => { pk.titles.push(''); touch(); renderDrawer(); } }),
+      h('button', { class: 'btn small ghost', type: 'button', text: '📋 Copy chosen title', onclick: () => copy(pk.titles[pk.chosen] || '', 'Title copied') }),
+    ),
+    h('div', { class: 'section-title', text: 'Thumbnail' }),
+    pk.thumbnail_urls.length > 0 && h('div', { class: 'thumb-grid' }, pk.thumbnail_urls.map((u, i) => h('div', { class: 'thumb-item' },
+      thumbImg(u, 'thumb', pk.thumbnail_text) || h('div', { class: 'thumb placeholder', text: 'Bad link' }),
+      !state.readOnly && h('button', { class: 'btn small', type: 'button', text: '✕', 'aria-label': 'Remove image', onclick: () => { pk.thumbnail_urls.splice(i, 1); touch(); renderDrawer(); } }),
+    ))),
+    !state.readOnly && h('div', { class: 'add-row' },
+      linkInput,
+      h('button', { class: 'btn', type: 'button', text: 'Add link', onclick: addLink }),
+      assets && h('button', { class: 'btn', type: 'button', text: '⬆ Upload image', onclick: () => fileInput.click() }),
+      fileInput,
+    ),
+    field('Text on thumbnail', bound('input', 'thumbnail_text', { id: 'thumb-text', maxlength: 200 })),
+    field('Concept', bound('textarea', 'thumbnail_concept', { id: 'thumb-concept', rows: 3 })),
+    h('div', { class: 'section-title', text: 'Description & tags' }),
+    field('Description', h('div', { class: 'with-copy' },
+      bound('textarea', 'description', { id: 'pkg-description', rows: 6 }),
+      h('button', { class: 'btn small', type: 'button', text: 'Copy', onclick: () => copy(pk.description, 'Description copied') }),
+    )),
+    field('Tags (comma separated)', h('div', { class: 'with-copy' },
+      bound('input', 'video_tags', { id: 'pkg-tags' }),
+      h('button', { class: 'btn small', type: 'button', text: 'Copy', onclick: () => copy(parseList(pk.video_tags).join(', '), 'Tags copied') }),
+    )),
+    !state.readOnly && saveBar('Save packaging', save),
+  ];
+}
+
+function activity(s) {
+  const items = [
+    s.created_at && { at: s.created_at, ico: '📥', what: `Received${s.source ? ` from ${s.source}` : ''}` },
+    s.revised_at && { at: s.revised_at, ico: '🔁', what: 'New version received' },
+    s.packaging?.updated_at && { at: s.packaging.updated_at, ico: '📦', what: 'Packaging updated' },
+    s.audio_created_at && { at: s.audio_created_at, ico: '🎙', what: 'Audio created' },
+    s.uploaded_at && { at: s.uploaded_at, ico: '🚀', what: 'Uploaded' },
+  ].filter(Boolean).sort((a, b) => b.at.localeCompare(a.at));
+  if (!items.length) return emptyState('No activity recorded', '');
+  return h('ul', { class: 'timeline' }, items.map((e) => h('li', null,
+    h('span', { class: 'ico', 'aria-hidden': 'true', text: e.ico }),
+    h('div', null, h('div', { class: 'what', text: e.what }), h('div', { class: 'when', title: fmtFull(e.at), text: `${ago(e.at)} · ${fmtFull(e.at)}` })),
+  )));
+}
+
+/* ---------- adding scripts ---------- */
+
+// Chats can't save into the desk directly, so they end their reply with this block and you paste it in.
+const BLOCK_KEYS = {
+  'TITLE': 'title', 'WORKING TITLE': 'title', 'CHANNEL': 'channel', 'NOTES': 'notes',
+  'TITLE OPTIONS': 'titles', 'TITLES': 'titles', 'THUMBNAIL TEXT': 'thumbnail_text',
+  'THUMBNAIL CONCEPT': 'thumbnail_concept', 'DESCRIPTION': 'description', 'TAGS': 'video_tags', 'SCRIPT': 'body',
+};
+function parseBlock(text) {
+  const lines = text.replace(/\r\n?/g, '\n').split('\n');
+  const fields = {};
+  let key = null;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s*```/.test(line)) continue;
+    const m = line.match(/^\s*(?:#+\s*)?\**\s*([A-Za-z][A-Za-z ]*?)\s*\**\s*:\s*\**\s*(.*)$/);
+    const k = m && BLOCK_KEYS[m[1].trim().toUpperCase()];
+    if (k === 'body') {
+      const rest = [m[2], ...lines.slice(i + 1)];
+      const end = rest.findIndex((l) => /^\s*(?:=+\s*)?END(?: OF)?(?: SCRIPT)?(?:\s*=+)?\s*$/i.test(l));
+      fields.body = (end === -1 ? rest : rest.slice(0, end)).filter((l) => !/^\s*```\s*$/.test(l)).join('\n').trim();
+      break;
+    }
+    if (k) {
+      key = k;
+      fields[k] = m[2].trim() ? [m[2].trim()] : [];
+    } else if (key && line.trim()) fields[key].push(line.trim());
+  }
+  if (!fields.body || !fields.title) return null;
+  const one = (k, sep = ' ') => (fields[k] || []).join(sep).trim();
+  const titles = (fields.titles || []).map((l) => l.replace(/^([-*•]|\d+[.)])\s*/, '').trim()).filter(Boolean);
+  const pkg = {
+    titles,
+    chosen_title: titles[0] || '',
+    thumbnail_text: one('thumbnail_text'),
+    thumbnail_concept: one('thumbnail_concept', '\n'),
+    thumbnail_urls: [],
+    description: one('description', '\n'),
+    video_tags: parseList(one('video_tags', ',')),
+  };
+  const hasPackaging = titles.length || pkg.thumbnail_text || pkg.thumbnail_concept || pkg.description || pkg.video_tags.length;
+  return { title: one('title'), channel: one('channel'), notes: one('notes', '\n'), body: fields.body, packaging: hasPackaging ? pkg : null };
+}
+
+let addParsed = null;
+function onAddText() {
+  addParsed = parseBlock($('#add-text').value);
+  const note = $('#add-detected');
+  note.hidden = !addParsed;
+  if (!addParsed) return;
+  $('#add-title').value = addParsed.title;
+  if (addParsed.channel) $('#add-channel').value = addParsed.channel;
+  const p = addParsed.packaging;
+  note.textContent = `✓ Script Desk block found: ${numberFmt.format(countWords(addParsed.body))} words${p ? `, ${plural(p.titles.length, 'title option')}${p.thumbnail_text ? ', thumbnail text' : ''}${p.description ? ', description' : ''}${p.video_tags.length ? ', tags' : ''}` : ''}.`;
+}
+
+function openAdd() {
+  if (!db) return toast('The desk isn’t connected to its database in this view.', { kind: 'error' });
+  if (state.readOnly) return toast('You can look at this desk but not change it.', { kind: 'error' });
+  $('#add-form').reset();
+  addParsed = null;
+  $('#add-detected').hidden = true;
+  const dialog = $('#add-dialog');
+  dialog.returnValue = '';
+  dialog.showModal();
+}
+
+async function addScript() {
+  const title = $('#add-title').value.trim();
+  const channel = $('#add-channel').value.trim();
+  const body = addParsed ? addParsed.body : $('#add-text').value.trim();
+  if (!title || !body) return;
+  const ts = nowIso();
+  const id = `${slug(title)}-${Math.random().toString(36).slice(2, 7)}`;
+  const doc = { title, body, channel, source: 'you', status: 'new', seen: true, created_at: ts, updated_at: ts };
+  if (addParsed?.notes) doc.notes = addParsed.notes;
+  if (addParsed?.packaging) doc.packaging = { ...addParsed.packaging, updated_at: ts };
+  try {
+    await db.doc(`${COLLECTION}/${id}`).set(doc);
+    toast(`✓ Added “${title}”`, { action: { label: 'Open', run: () => openScript(id) } });
+  } catch (err) {
+    fail(err?.code === 'quota_exceeded' ? 'The desk is full. Delete some old scripts and try again.' : err);
+  }
+}
+
+/* ---------- connect agents ---------- */
+
+function agentInstructions() {
+  const url = DESK_URL || '<this desk’s claude.ai link>';
+  return {
+    code: [
+      'When you finish a video script, save it to my Script Desk with the ArtifactData tool:',
+      `- url: ${url}`,
+      '- action: "set", collection: "scripts"',
+      '- doc_id: a short lowercase id from the title plus today’s date, e.g. "why-rome-fell-2026-10-13"',
+      '- data: {',
+      '    "title": "<working title>",',
+      '    "body": "<the full narration only, no headings or stage directions>",',
+      '    "channel": "<channel name>",',
+      '    "source": "<your name, e.g. history-writer>",',
+      '    "status": "new", "seen": false,',
+      '    "created_at": "<current time, ISO 8601>",',
+      '    "packaging": {',
+      '      "titles": ["<best title>", "<alternative>", "<alternative>"],',
+      '      "thumbnail_text": "<max 4 words>",',
+      '      "thumbnail_concept": "<what the thumbnail shows>",',
+      '      "description": "<video description>",',
+      '      "video_tags": ["<tag>", "<tag>"]',
+      '    }',
+      '  }',
+      'To revise a script you saved before: "get" it, then "update" it with if_version set to the version you read, sending the changed fields plus "seen": false and "revised_at": "<current time>".',
+      'To add a thumbnail image: upload the file with the Artifact tool (same url, asset: true) and add the returned asset id to packaging.thumbnail_urls.',
+    ].join('\n'),
+    chat: [
+      'When you finish a script, end your reply with this block, filled in, as plain text:',
+      '',
+      'TITLE: <working title>',
+      'CHANNEL: <channel name>',
+      'TITLE OPTIONS:',
+      '- <best title>',
+      '- <alternative>',
+      '- <alternative>',
+      'THUMBNAIL TEXT: <max 4 words>',
+      'THUMBNAIL CONCEPT: <what the thumbnail shows>',
+      'DESCRIPTION: <video description>',
+      'TAGS: <tag>, <tag>, <tag>',
+      'SCRIPT:',
+      '<the full narration only>',
+      'END SCRIPT',
+    ].join('\n'),
+  };
+}
+
+function openConnect() {
+  const text = agentInstructions();
+  const code = (t) => h('div', { class: 'code' }, t, h('button', { class: 'btn small', type: 'button', text: 'Copy', onclick: () => copy(t) }));
+  $('#connect-body').replaceChildren(...[
+    h('h2', { text: 'Connect your agents' }),
+    h('p', { class: 'muted', text: 'Scripts saved here show up instantly as NEW, glowing until you open them.' }),
+    h('h3', { text: 'Claude Code sessions: automatic' }),
+    h('p', { text: 'Paste this into the session’s instructions (or a CLAUDE.md in the repo it works in). It saves each finished script straight into this desk.' }),
+    code(text.code),
+    h('h3', { text: 'claude.ai chats: one paste' }),
+    h('p', { text: 'Chats can’t save here on their own. Add this to a Project’s instructions; every chat in it then ends with a block. Copy the block, click “+ Add script”, paste, done.' }),
+    code(text.chat),
+  ]);
+  $('#connect-dialog').showModal();
+}
+
+/* ---------- live data ---------- */
+
+function onSnapshot(snap) {
+  const firstLoad = state.known === null;
+  const previous = new Map(state.scripts.map((s) => [s.id, s]));
+  state.scripts = snap.docs.filter((d) => d.exists).map((d) => normalize(d.id, d.data() || {}));
+  let openChangedElsewhere = false;
+  if (!firstLoad) {
+    for (const change of snap.docChanges()) {
+      const s = find(change.doc.id);
+      if (change.type === 'modified' && changedElsewhere(change.doc.id, previous.get(change.doc.id)?.raw, s?.raw) && change.doc.id === state.openId) openChangedElsewhere = true;
+      if (!s || s.seen || s.status === 'uploaded') continue;
+      if (change.type === 'added' && !state.known.has(s.id)) {
+        state.arrived.add(s.id);
+        toast(`✦ New script: “${s.title}”`, { kind: 'new-script', timeout: 8000, action: { label: 'Open', run: () => openScript(s.id) } });
+      } else if (change.type === 'modified' && previous.get(s.id)?.seen) {
+        toast(`✦ Updated: “${s.title}”`, { kind: 'new-script', timeout: 8000, action: { label: 'Open', run: () => openScript(s.id) } });
+      }
+    }
+  }
+  state.known = new Set(state.scripts.map((s) => s.id));
+  state.ready = true;
+  render();
+  if (state.openId) {
+    if (!find(state.openId)) {
+      state.dirty = false;
+      closeDrawer();
+    } else if (state.dirty || state.editing) {
+      // Re-rendering now would steal focus from what you're typing; just say it changed.
+      if (openChangedElsewhere) { const note = $('#stale-note'); if (note) note.hidden = false; }
+    } else renderDrawer();
+  }
+}
+
+async function connect() {
+  render();
+  db = await window.claude?.use?.('db') ?? null;
+  if (!db) {
+    state.ready = true;
+    const notice = $('#notice');
+    notice.hidden = false;
+    notice.textContent = 'Your scripts live in this page’s database, which isn’t available in this view. Open the desk from claude.ai while signed in.';
+    render();
+    return;
+  }
+  db.collection(COLLECTION).onSnapshot(onSnapshot, (err) => {
+    const notice = $('#notice');
+    notice.hidden = false;
+    notice.textContent = err?.code === 'revoked' ? 'This desk is no longer available to you.' : 'Lost the live connection to your scripts. Reload the page to reconnect.';
+  });
+  window.claude.use('assets').then((a) => { assets = a; if (state.openId) renderDrawer(); });
+  window.claude.use('downloads').then((d) => { downloads = d; if (state.openId) renderDrawer(); });
+}
+
+/* ---------- wiring ---------- */
+
+let searchTimer;
+$('#search').addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { state.q = e.target.value.trim(); render(); }, 150);
+});
+$('#channel').addEventListener('change', (e) => { state.channel = e.target.value; render(); });
+for (const tab of document.querySelectorAll('.tab')) tab.addEventListener('click', () => { state.view = tab.dataset.view; render(); });
+$('#mark-all-seen').addEventListener('click', async () => {
+  for (const s of state.scripts.filter((x) => !x.seen && x.status !== 'uploaded')) {
+    try { await write(s.id, { seen: true }); } catch (err) { fail(err); break; }
+  }
+});
+$('#scrim').addEventListener('click', closeDrawer);
+$('#connect-btn').addEventListener('click', openConnect);
+$('#add-btn').addEventListener('click', openAdd);
+$('#add-text').addEventListener('input', onAddText);
+$('#add-dialog').addEventListener('close', () => { if ($('#add-dialog').returnValue === 'confirm') addScript(); });
+document.addEventListener('keydown', (e) => {
+  const typing = e.target.closest('input, textarea, select, [contenteditable]');
+  if (e.key === '/' && !typing && !document.querySelector('dialog[open]')) {
+    e.preventDefault();
+    $('#search').focus();
+  } else if (e.key === 'Escape' && state.openId && !document.querySelector('dialog[open]')) {
+    closeDrawer();
+  }
+});
+setInterval(() => render(), 60_000);
+
+connect().catch(fail);
+</script>

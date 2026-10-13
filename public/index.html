@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Script Desk</title>
+  <link rel="icon" id="favicon" href="data:,">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/todo" aria-label="Script Desk home">
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <span class="brand-name">Script Desk</span>
+    </a>
+    <nav class="tabs" aria-label="Views">
+      <a class="tab" href="#/todo" data-view="todo">To-do <span class="count" id="count-todo">0</span></a>
+      <a class="tab" href="#/archive" data-view="archive">Archive <span class="count" id="count-archive">0</span></a>
+    </nav>
+    <div class="tools">
+      <label class="search">
+        <span class="visually-hidden">Search scripts</span>
+        <input type="search" id="search" placeholder="Search scripts" autocomplete="off">
+        <kbd aria-hidden="true">/</kbd>
+      </label>
+      <label class="visually-hidden" for="channel">Channel</label>
+      <select id="channel"><option value="">All channels</option></select>
+      <button class="btn icon" id="notify-btn" type="button" title="Desktop alerts for new scripts" aria-label="Desktop alerts for new scripts">🔔</button>
+      <button class="btn ghost" id="connect-btn" type="button">Connect agents</button>
+      <button class="btn primary" id="add-btn" type="button">+ Add script</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="banner" id="banner" hidden>
+      <span class="banner-spark" aria-hidden="true">✦</span>
+      <span id="banner-text"></span>
+      <button class="btn small ghost" id="mark-all-seen" type="button">Mark all as seen</button>
+    </div>
+
+    <section id="view-todo" class="view" aria-label="To-do">
+      <div class="lanes">
+        <section class="lane lane-new" aria-labelledby="lane-new-title">
+          <header class="lane-head">
+            <span class="dot dot-new" aria-hidden="true"></span>
+            <h2 id="lane-new-title">New <span class="lane-sub">needs audio</span></h2>
+            <span class="count" id="count-new">0</span>
+          </header>
+          <div class="cards" id="lane-new"></div>
+        </section>
+        <section class="lane lane-created" aria-labelledby="lane-created-title">
+          <header class="lane-head">
+            <span class="dot dot-created" aria-hidden="true"></span>
+            <h2 id="lane-created-title">Audio created <span class="lane-sub">ready to publish</span></h2>
+            <span class="count" id="count-created">0</span>
+          </header>
+          <div class="cards" id="lane-created"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="view-archive" class="view" aria-label="Archive" hidden>
+      <div id="archive-list"></div>
+    </section>
+  </main>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <aside class="drawer" id="drawer" aria-modal="true" role="dialog" aria-label="Script details" hidden></aside>
+
+  <dialog id="upload-dialog" class="modal">
+    <form method="dialog" id="upload-form">
+      <h2>Mark as uploaded 🚀</h2>
+      <p class="muted">It leaves the to-do list and moves to the archive.</p>
+      <label class="field">
+        <span>Video link <span class="muted">(optional)</span></span>
+        <input type="url" name="video_url" placeholder="https://youtube.com/watch?v=…">
+      </label>
+      <div class="modal-actions">
+        <button class="btn ghost" value="cancel" formnovalidate>Cancel</button>
+        <button class="btn primary success" value="confirm">Archive it</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="add-dialog" class="modal wide">
+    <form method="dialog" id="add-form">
+      <h2>Add a script</h2>
+      <p class="muted">Paste a script by hand. Agents can upload on their own too; see “Connect agents”.</p>
+      <label class="field"><span>Title</span><input name="title" required maxlength="300"></label>
+      <label class="field"><span>Channel</span><input name="channel" list="channel-options" maxlength="100"></label>
+      <label class="field"><span>Script</span><textarea name="body" rows="12" required></textarea></label>
+      <div class="modal-actions">
+        <button class="btn ghost" value="cancel" formnovalidate>Cancel</button>
+        <button class="btn primary" value="confirm">Add to to-do</button>
+      </div>
+    </form>
+  </dialog>
+  <datalist id="channel-options"></datalist>
+
+  <dialog id="connect-dialog" class="modal wide">
+    <div class="modal-scroll" id="connect-body"></div>
+    <form method="dialog" class="modal-actions"><button class="btn primary">Done</button></form>
+  </dialog>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</body>
+</html>

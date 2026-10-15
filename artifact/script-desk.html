@@ -19,6 +19,10 @@
   --created-soft: #ecebff;
   --uploaded: #15946a;
   --uploaded-soft: #def5ea;
+  --yt: #d93025;
+  --yt-soft: #fde8e6;
+  --pt: #0f7c84;
+  --pt-soft: #dcf3f3;
   --danger: #cf3f36;
   --on-accent: #ffffff;
   --toast-bg: #1d1c1a;
@@ -36,6 +40,7 @@
     --bg: #111113; --surface: #1a1a1d; --surface-2: #242428; --text: #edebe7; --muted: #a09d97;
     --border: #2f2f34; --focus: #8b8cff; --new-soft: #3a2a0b; --new-ink: #fbbf5a; --created: #8b8cff;
     --created-soft: #25244a; --uploaded: #3ccf98; --uploaded-soft: #123327; --danger: #ff6b61;
+    --yt: #ff7b6e; --yt-soft: #3b1714; --pt: #4fd1d9; --pt-soft: #0e3033;
     --on-accent: #0b0b0d; --toast-bg: #edebe7; --toast-fg: #111113; --scrim: rgb(0 0 0 / 55%);
     --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px -10px rgb(0 0 0 / 60%);
     color-scheme: dark;
@@ -45,6 +50,7 @@
   --bg: #111113; --surface: #1a1a1d; --surface-2: #242428; --text: #edebe7; --muted: #a09d97;
   --border: #2f2f34; --focus: #8b8cff; --new-soft: #3a2a0b; --new-ink: #fbbf5a; --created: #8b8cff;
   --created-soft: #25244a; --uploaded: #3ccf98; --uploaded-soft: #123327; --danger: #ff6b61;
+    --yt: #ff7b6e; --yt-soft: #3b1714; --pt: #4fd1d9; --pt-soft: #0e3033;
   --on-accent: #0b0b0d; --toast-bg: #edebe7; --toast-fg: #111113; --scrim: rgb(0 0 0 / 55%);
   --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px -10px rgb(0 0 0 / 60%);
   color-scheme: dark;
@@ -122,6 +128,21 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--f
 .search input { width: 220px; padding-right: 32px; }
 .search kbd { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 0 6px; border: 1px solid var(--border); border-radius: 5px; font: 11px/18px var(--font-mono); color: var(--muted); }
 #channel { width: auto; max-width: 180px; }
+.filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.platforms { display: flex; gap: 4px; padding: 3px; background: var(--surface-2); border-radius: 12px; }
+.platform-btn { display: flex; align-items: center; gap: 7px; padding: 6px 12px; border: 0; border-radius: 9px; background: none; cursor: pointer; font-weight: 600; color: var(--muted); }
+.platform-btn[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.pdot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.pdot.youtube { background: var(--yt); }
+.pdot.patreon { background: var(--pt); }
+.chip.platform-youtube { background: var(--yt-soft); color: var(--yt); }
+.chip.platform-patreon { background: var(--pt-soft); color: var(--pt); }
+.platform-switch { display: inline-flex; padding: 2px; gap: 2px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); }
+.platform-switch button { border: 0; border-radius: 999px; background: none; padding: 3px 11px; font-size: 12px; font-weight: 700; color: var(--muted); cursor: pointer; }
+.platform-switch button:disabled { cursor: default; }
+.platform-switch button[aria-pressed="true"].youtube { background: var(--yt-soft); color: var(--yt); }
+.platform-switch button[aria-pressed="true"].patreon { background: var(--pt-soft); color: var(--pt); }
+.platform-switch.large button { padding: 6px 16px; font-size: 14px; }
 
 main { max-width: 1320px; margin: 0 auto; padding: 20px 24px 80px; display: grid; gap: 18px; }
 
@@ -170,7 +191,8 @@ main { max-width: 1320px; margin: 0 auto; padding: 20px 24px 80px; display: grid
   box-shadow: 0 4px 12px -2px color-mix(in srgb, var(--new-2) 60%, transparent);
 }
 .ribbon.revised { background: linear-gradient(90deg, var(--new-3), var(--created)); }
-.card-top { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12px; }
+.card-top { display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; min-width: 0; font-size: 12px; }
+.chip.platform-youtube, .chip.platform-patreon { flex: none; }
 .card-top .when { margin-left: auto; color: var(--muted); white-space: nowrap; }
 .card-main { display: flex; gap: 14px; min-width: 0; }
 .card-text { min-width: 0; flex: 1; }
@@ -216,9 +238,11 @@ main { max-width: 1320px; margin: 0 auto; padding: 20px 24px 80px; display: grid
 .drawer-head { padding: 18px 24px 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
 .drawer-head .row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .drawer-head .row .close { margin-left: auto; }
+.drawer-head .row .chip { min-width: 0; flex-shrink: 1; }
+.drawer-head .row .platform-switch { flex: none; }
 .drawer-head h2 { margin: 0; font-size: 21px; line-height: 1.25; overflow-wrap: anywhere; }
 .drawer-head .sub { margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--muted); }
-.status-pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.status-pill { white-space: nowrap; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .status-pill.new { background: var(--new-soft); color: var(--new-ink); }
 .status-pill.created { background: var(--created-soft); color: var(--created); }
 .status-pill.uploaded { background: var(--uploaded-soft); color: var(--uploaded); }
@@ -322,7 +346,9 @@ main { max-width: 1320px; margin: 0 auto; padding: 20px 24px 80px; display: grid
   .search { grid-column: 1 / -1; }
   .search input { width: 100%; }
   #channel { max-width: none; width: 100%; }
-  #connect-btn { grid-column: 1 / -1; }
+  .platforms { width: 100%; }
+  .drawer-head .row .chip { display: none; }
+  .platform-btn { flex: 1; justify-content: center; padding: 6px 8px; }
   main { padding: 16px 16px 80px; }
   .banner { display: grid; grid-template-columns: auto minmax(0, 1fr); }
   .banner #mark-all-seen { grid-column: 2; justify-self: start; margin-left: 0; }
@@ -346,14 +372,21 @@ main { max-width: 1320px; margin: 0 auto; padding: 20px 24px 80px; display: grid
   </nav>
   <div class="tools">
     <label class="search"><span class="visually-hidden">Search scripts</span><input type="search" id="search" placeholder="Search scripts" autocomplete="off"><kbd aria-hidden="true">/</kbd></label>
-    <label class="visually-hidden" for="channel">Channel</label>
-    <select id="channel"><option value="">All channels</option></select>
     <button class="btn ghost" id="connect-btn" type="button">Connect agents</button>
     <button class="btn primary" id="add-btn" type="button">+ Add script</button>
   </div>
 </header>
 
 <main>
+  <div class="filters">
+    <div class="platforms" role="group" aria-label="Show scripts for">
+      <button class="platform-btn" type="button" data-platform="" aria-pressed="true">All <span class="count" id="count-p-all">0</span></button>
+      <button class="platform-btn" type="button" data-platform="youtube" aria-pressed="false"><span class="pdot youtube" aria-hidden="true"></span>YouTube <span class="count" id="count-p-youtube">0</span></button>
+      <button class="platform-btn" type="button" data-platform="patreon" aria-pressed="false"><span class="pdot patreon" aria-hidden="true"></span>Patreon <span class="count" id="count-p-patreon">0</span></button>
+    </div>
+    <label class="visually-hidden" for="channel">Channel</label>
+    <select id="channel"><option value="">All channels</option></select>
+  </div>
   <div class="notice" id="notice" hidden></div>
   <div class="banner" id="banner" hidden>
     <span class="banner-spark" aria-hidden="true">✦</span>
@@ -382,7 +415,7 @@ main { max-width: 1320px; margin: 0 auto; padding: 20px 24px 80px; display: grid
   <form method="dialog" id="upload-form">
     <h2>Mark as uploaded 🚀</h2>
     <p class="muted">It leaves the to-do list and moves to the archive.</p>
-    <label class="field"><span>Video link (optional)</span><input type="url" id="video-url" name="video_url" placeholder="https://youtube.com/watch?v=…"></label>
+    <label class="field"><span id="video-url-label">Video link (optional)</span><input type="url" id="video-url" name="video_url" placeholder="https://youtube.com/watch?v=…"></label>
     <div class="modal-actions">
       <button class="btn ghost" value="cancel" formnovalidate>Cancel</button>
       <button class="btn publish" value="confirm">Archive it</button>
@@ -400,6 +433,10 @@ main { max-width: 1320px; margin: 0 auto; padding: 20px 24px 80px; display: grid
     <div class="detected" id="add-detected" hidden></div>
     <label class="field"><span>Title</span><input id="add-title" name="title" required maxlength="300"></label>
     <label class="field"><span>Channel</span><input id="add-channel" name="channel" list="channel-options" maxlength="100"></label>
+    <div class="field"><span>Type</span><div class="platform-switch large" id="add-platform" role="group" aria-label="Script type">
+      <button type="button" class="youtube" data-platform="youtube" aria-pressed="true">YouTube</button>
+      <button type="button" class="patreon" data-platform="patreon" aria-pressed="false">Patreon</button>
+    </div></div>
     <div class="modal-actions">
       <button class="btn ghost" value="cancel" formnovalidate>Cancel</button>
       <button class="btn primary" value="confirm">Add to to-do</button>
@@ -425,11 +462,26 @@ const STATUS = {
   uploaded: { label: 'Uploaded', next: null },
 };
 const ORDER = ['new', 'created', 'uploaded'];
+// Where a script will be published. Scripts without a type count as YouTube.
+const PLATFORMS = {
+  youtube: { label: 'YouTube', linkLabel: 'Video link', placeholder: 'https://youtube.com/watch?v=…', open: '▶ Watch' },
+  patreon: { label: 'Patreon', linkLabel: 'Patreon post link', placeholder: 'https://patreon.com/posts/…', open: '↗ Open post' },
+};
+const toPlatform = (v) => (typeof v === 'string' && v.toLowerCase().includes('patreon') ? 'patreon' : 'youtube');
+const PLATFORM_KEY = 'script-desk:platform';
+function savedPlatform() {
+  try {
+    const v = localStorage.getItem(PLATFORM_KEY);
+    return v in PLATFORMS ? v : '';
+  } catch {
+    return '';
+  }
+}
 const WORDS_PER_MINUTE = 150;
 const TITLE_LIMIT = 100;
 
 const state = {
-  scripts: [], ready: false, view: 'todo', q: '', channel: '',
+  scripts: [], ready: false, view: 'todo', q: '', channel: '', platform: savedPlatform(),
   openId: null, tab: 'script', editing: false, draft: null, pk: null, dirty: false,
   arrived: new Set(), known: null, readOnly: false, ownWrites: new Map(),
 };
@@ -569,6 +621,7 @@ function normalize(id, d) {
     notes: str(d.notes),
     tags: list(d.tags),
     status: ORDER.includes(d.status) ? d.status : 'new',
+    platform: toPlatform(d.platform),
     seen: d.seen === true,
     created_at: validDate(d.created_at),
     updated_at: validDate(d.updated_at),
@@ -593,7 +646,8 @@ function normalize(id, d) {
 const find = (id) => state.scripts.find((s) => s.id === id) || null;
 const byNewest = (field) => (a, b) => (b[field] || '').localeCompare(a[field] || '') || a.id.localeCompare(b.id);
 
-function matches(s) {
+function matches(s, { ignorePlatform = false } = {}) {
+  if (!ignorePlatform && state.platform && s.platform !== state.platform) return false;
   if (state.channel && s.channel !== state.channel) return false;
   if (!state.q) return true;
   const q = state.q.toLowerCase();
@@ -631,7 +685,7 @@ async function changeStatus(id, status, { undoable = true } = {}) {
   if (!s || s.status === status) return;
   let videoUrl;
   if (status === 'uploaded') {
-    videoUrl = await askVideoUrl(s.video_url);
+    videoUrl = await askVideoUrl(s.video_url, s.platform);
     if (videoUrl === null) return;
   }
   const ts = nowIso();
@@ -653,9 +707,11 @@ async function changeStatus(id, status, { undoable = true } = {}) {
   toast(messages[status], undoable ? { action: { label: 'Undo', run: () => write(id, { ...before, updated_at: nowIso() }).catch(fail) } } : {});
 }
 
-function askVideoUrl(current) {
+function askVideoUrl(current, platform) {
   const dialog = $('#upload-dialog');
   $('#upload-form').reset();
+  $('#video-url-label').textContent = `${PLATFORMS[platform].linkLabel} (optional)`;
+  $('#video-url').placeholder = PLATFORMS[platform].placeholder;
   $('#video-url').value = current || '';
   dialog.returnValue = '';
   dialog.showModal();
@@ -686,6 +742,10 @@ function render() {
   $('#channel-options').replaceChildren(...channels.map((c) => h('option', { value: c })));
 
   for (const tab of document.querySelectorAll('.tab')) tab.setAttribute('aria-pressed', String(tab.dataset.view === state.view));
+  const inView = all.filter((s) => (state.view === 'archive') === (s.status === 'uploaded') && matches(s, { ignorePlatform: true }));
+  $('#count-p-all').textContent = inView.length;
+  for (const key of Object.keys(PLATFORMS)) $(`#count-p-${key}`).textContent = inView.filter((s) => s.platform === key).length;
+  for (const btn of document.querySelectorAll('.platform-btn')) btn.setAttribute('aria-pressed', String(btn.dataset.platform === state.platform));
   $('#view-todo').hidden = state.view !== 'todo';
   $('#view-archive').hidden = state.view !== 'archive';
   renderTodo();
@@ -698,7 +758,7 @@ function emptyState(title, text, ...actions) {
 }
 
 function renderTodo() {
-  const filtering = Boolean(state.q || state.channel);
+  const filtering = Boolean(state.q || state.channel || state.platform);
   const list = state.scripts.filter((s) => s.status !== 'uploaded' && matches(s)).sort(byNewest('created_at'));
   for (const status of ['new', 'created']) {
     const scripts = list.filter((s) => s.status === status);
@@ -706,7 +766,7 @@ function renderTodo() {
     const lane = $(`#lane-${status}`);
     if (!state.ready) lane.replaceChildren(emptyState('Loading your scripts…', ''));
     else if (scripts.length) lane.replaceChildren(...scripts.map(card));
-    else if (filtering) lane.replaceChildren(emptyState('No matches', 'Try another search or channel.'));
+    else if (filtering) lane.replaceChildren(emptyState(state.q || state.channel ? 'No matches' : `No ${PLATFORMS[state.platform].label} scripts here`, state.q || state.channel ? 'Try another search, channel or type.' : ''));
     else if (status === 'new' && state.scripts.length === 0) {
       lane.replaceChildren(emptyState('No scripts yet', 'Connect your agents so finished scripts land here, or paste one in.',
         h('button', { class: 'btn small', type: 'button', text: 'Connect agents', onclick: openConnect }),
@@ -725,6 +785,7 @@ function card(s) {
   return h('article', { class: classes.filter(Boolean).join(' '), onclick: open },
     !s.seen && h('span', { class: `ribbon${s.status === 'new' ? '' : ' revised'}`, text: s.status === 'new' ? '✦ NEW' : '✦ UPDATED' }),
     h('div', { class: 'card-top' },
+      h('span', { class: `chip platform-${s.platform}`, text: PLATFORMS[s.platform].label }),
       s.channel && h('span', { class: 'chip', text: s.channel }),
       s.source && h('span', { class: 'chip', text: `by ${s.source}` }),
       h('span', { class: 'when', title: fmtFull(s.created_at), text: ago(s.created_at) }),
@@ -755,8 +816,8 @@ function renderArchive() {
   const list = $('#archive-list');
   const scripts = state.scripts.filter((s) => s.status === 'uploaded' && matches(s)).sort(byNewest('uploaded_at'));
   if (!scripts.length) {
-    list.replaceChildren(state.q || state.channel
-      ? emptyState('No matches', 'Try another search or channel.')
+    list.replaceChildren(state.q || state.channel || state.platform
+      ? emptyState('No matches', 'Try another search, channel or type.')
       : emptyState('Nothing published yet', 'Scripts you mark as uploaded leave the to-do list and are kept here.'));
     return;
   }
@@ -783,13 +844,14 @@ function archiveRow(s) {
       h('h3', null, h('button', { class: 'card-link', type: 'button', text: chosen || s.title, onclick: (e) => { e.stopPropagation(); openScript(s.id); } })),
       chosen && chosen !== s.title && h('p', { class: 'working-title', text: `Script: ${s.title}` }),
       h('div', { class: 'meta' }, joined([
+        h('span', { class: `chip platform-${s.platform}`, text: PLATFORMS[s.platform].label }),
         s.channel && h('span', { text: s.channel }),
         h('span', { text: `${numberFmt.format(s.word_count)} words` }),
         s.uploaded_at && h('span', { title: fmtFull(s.uploaded_at), text: `uploaded ${dayFmt.format(new Date(s.uploaded_at))}` }),
       ])),
     ),
     h('div', { class: 'right' },
-      video && h('a', { class: 'btn small ghost', href: video, target: '_blank', rel: 'noopener noreferrer', text: '▶ Watch', onclick: (e) => e.stopPropagation() }),
+      video && h('a', { class: 'btn small ghost', href: video, target: '_blank', rel: 'noopener noreferrer', text: PLATFORMS[s.platform].open, onclick: (e) => e.stopPropagation() }),
       h('span', { class: 'chip done-badge', text: '✓ Uploaded' }),
     ),
   );
@@ -916,13 +978,21 @@ function drawerHead(s) {
   else if (!state.readOnly && s.status === 'created') next = h('button', { class: 'btn publish', type: 'button', text: '🚀 Mark as uploaded', onclick: () => changeStatus(s.id, 'uploaded').catch(fail) });
   else if (s.status === 'uploaded') {
     next = [
-      videoUrl && h('a', { class: 'btn', href: videoUrl, target: '_blank', rel: 'noopener noreferrer', text: '▶ Watch video ↗' }),
+      videoUrl && h('a', { class: 'btn', href: videoUrl, target: '_blank', rel: 'noopener noreferrer', text: s.platform === 'patreon' ? '↗ Open Patreon post' : '▶ Watch video ↗' }),
       !state.readOnly && h('button', { class: 'btn ghost', type: 'button', text: '↩ Back to to-do', onclick: () => changeStatus(s.id, 'created').catch(fail) }),
     ];
   }
   return h('div', { class: 'drawer-head' },
     h('div', { class: 'row' },
       h('span', { class: `status-pill ${s.status}`, text: STATUS[s.status].label }),
+      h('div', { class: 'platform-switch', role: 'group', 'aria-label': 'Script type' }, Object.entries(PLATFORMS).map(([key, p]) => h('button', {
+        type: 'button', class: key, 'aria-pressed': String(s.platform === key), disabled: state.readOnly,
+        title: s.platform === key ? `This is a ${p.label} script` : `Make this a ${p.label} script`,
+        onclick: () => {
+          if (s.platform === key) return;
+          write(s.id, { platform: key, updated_at: nowIso() }).then(() => toast(`“${s.title}” is now a ${p.label} script`)).catch(fail);
+        },
+      }, p.label))),
       s.channel && h('span', { class: 'chip', text: s.channel }),
       h('button', { class: 'btn icon ghost close', type: 'button', 'aria-label': 'Close', text: '✕', onclick: closeDrawer }),
     ),
@@ -1166,7 +1236,7 @@ function activity(s) {
 
 // Chats can't save into the desk directly, so they end their reply with this block and you paste it in.
 const BLOCK_KEYS = {
-  'TITLE': 'title', 'WORKING TITLE': 'title', 'CHANNEL': 'channel', 'NOTES': 'notes',
+  'TITLE': 'title', 'WORKING TITLE': 'title', 'CHANNEL': 'channel', 'NOTES': 'notes', 'PLATFORM': 'platform', 'TYPE': 'platform',
   'TITLE OPTIONS': 'titles', 'TITLES': 'titles', 'THUMBNAIL TEXT': 'thumbnail_text',
   'THUMBNAIL CONCEPT': 'thumbnail_concept', 'DESCRIPTION': 'description', 'TAGS': 'video_tags', 'SCRIPT': 'body',
 };
@@ -1203,10 +1273,15 @@ function parseBlock(text) {
     video_tags: parseList(one('video_tags', ',')),
   };
   const hasPackaging = titles.length || pkg.thumbnail_text || pkg.thumbnail_concept || pkg.description || pkg.video_tags.length;
-  return { title: one('title'), channel: one('channel'), notes: one('notes', '\n'), body: fields.body, packaging: hasPackaging ? pkg : null };
+  return { title: one('title'), channel: one('channel'), platform: one('platform') ? toPlatform(one('platform')) : null, notes: one('notes', '\n'), body: fields.body, packaging: hasPackaging ? pkg : null };
 }
 
 let addParsed = null;
+let addPlatform = 'youtube';
+function setAddPlatform(key) {
+  addPlatform = key;
+  for (const btn of document.querySelectorAll('#add-platform button')) btn.setAttribute('aria-pressed', String(btn.dataset.platform === key));
+}
 function onAddText() {
   addParsed = parseBlock($('#add-text').value);
   const note = $('#add-detected');
@@ -1214,6 +1289,7 @@ function onAddText() {
   if (!addParsed) return;
   $('#add-title').value = addParsed.title;
   if (addParsed.channel) $('#add-channel').value = addParsed.channel;
+  if (addParsed.platform) setAddPlatform(addParsed.platform);
   const p = addParsed.packaging;
   note.textContent = `✓ Script Desk block found: ${numberFmt.format(countWords(addParsed.body))} words${p ? `, ${plural(p.titles.length, 'title option')}${p.thumbnail_text ? ', thumbnail text' : ''}${p.description ? ', description' : ''}${p.video_tags.length ? ', tags' : ''}` : ''}.`;
 }
@@ -1223,6 +1299,7 @@ function openAdd() {
   if (state.readOnly) return toast('You can look at this desk but not change it.', { kind: 'error' });
   $('#add-form').reset();
   addParsed = null;
+  setAddPlatform(state.platform || 'youtube');
   $('#add-detected').hidden = true;
   const dialog = $('#add-dialog');
   dialog.returnValue = '';
@@ -1236,7 +1313,7 @@ async function addScript() {
   if (!title || !body) return;
   const ts = nowIso();
   const id = `${slug(title)}-${Math.random().toString(36).slice(2, 7)}`;
-  const doc = { title, body, channel, source: 'you', status: 'new', seen: true, created_at: ts, updated_at: ts };
+  const doc = { title, body, channel, platform: addPlatform, source: 'you', status: 'new', seen: true, created_at: ts, updated_at: ts };
   if (addParsed?.notes) doc.notes = addParsed.notes;
   if (addParsed?.packaging) doc.packaging = { ...addParsed.packaging, updated_at: ts };
   try {
@@ -1260,6 +1337,7 @@ function agentInstructions() {
       '- data: {',
       '    "title": "<working title>",',
       '    "body": "<the full narration only, no headings or stage directions>",',
+      '    "platform": "<youtube or patreon, where it will be published>",',
       '    "channel": "<channel name>",',
       '    "source": "<your name, e.g. history-writer>",',
       '    "status": "new", "seen": false,',
@@ -1279,6 +1357,7 @@ function agentInstructions() {
       'When you finish a script, end your reply with this block, filled in, as plain text:',
       '',
       'TITLE: <working title>',
+      'PLATFORM: YouTube or Patreon',
       'CHANNEL: <channel name>',
       'TITLE OPTIONS:',
       '- <best title>',
@@ -1373,6 +1452,14 @@ $('#search').addEventListener('input', (e) => {
   searchTimer = setTimeout(() => { state.q = e.target.value.trim(); render(); }, 150);
 });
 $('#channel').addEventListener('change', (e) => { state.channel = e.target.value; render(); });
+for (const btn of document.querySelectorAll('.platform-btn')) {
+  btn.addEventListener('click', () => {
+    state.platform = btn.dataset.platform;
+    try { localStorage.setItem(PLATFORM_KEY, state.platform); } catch { /* storage unavailable */ }
+    render();
+  });
+}
+for (const btn of document.querySelectorAll('#add-platform button')) btn.addEventListener('click', () => setAddPlatform(btn.dataset.platform));
 for (const tab of document.querySelectorAll('.tab')) tab.addEventListener('click', () => { state.view = tab.dataset.view; render(); });
 $('#mark-all-seen').addEventListener('click', async () => {
   for (const s of state.scripts.filter((x) => !x.seen && x.status !== 'uploaded')) {

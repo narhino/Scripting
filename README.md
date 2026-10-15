@@ -31,6 +31,9 @@ file and ask Claude to republish it to the same link.
 - **Claude Code sessions** save scripts into it automatically with the `ArtifactData` tool.
 - **claude.ai chats** can't write to it directly, so they end their reply with a *Script Desk block*.
   Copy it, click **+ Add script**, paste, and the title, channel and packaging fill in by themselves.
+- Every script is marked **YouTube** or **Patreon** (agents send `"platform"`, chat blocks a
+  `PLATFORM:` line, or switch it in the script's panel). Filter the board and archive by type.
+  Scripts without a type count as YouTube. *(The self-hosted server below doesn't have this yet.)*
 - The **Connect agents** button in the page has both instructions ready to copy.
 
 **2. Self-hosted server.** The Node app described below. Use it if you want claude.ai chats or
